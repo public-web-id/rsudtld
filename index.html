@@ -4,1342 +4,1004 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SI-Sehat RSUD Talaud</title>
-    <!-- Load Tailwind CSS via CDN for modern, responsive styling -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Lucide Icons for aesthetic icons -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Mengatur font utama dan menghilangkan margin default */
+        /* Menggunakan font Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding-bottom: 5rem; /* Ruang untuk bottom nav */
             background-color: #f7f9fb;
         }
 
-        /* Styling untuk popup */
-        .popup-overlay {
+        /* Styling untuk popup (Modal) */
+        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
+            display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
             opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: opacity 0.3s ease-out;
         }
-
-        .popup-overlay.open {
+        .modal-overlay.active {
+            display: flex;
             opacity: 1;
-            visibility: visible;
         }
-
-        .popup-content {
+        .modal-content {
             background-color: white;
-            border-radius: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: scale(0.95);
+            transition: transform 0.3s ease-out;
             max-height: 90vh;
             overflow-y: auto;
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            width: 95%;
+            width: 95%; /* Responsive width */
             max-width: 600px;
         }
-
-        .popup-overlay.open .popup-content {
+        .modal-overlay.active .modal-content {
             transform: scale(1);
         }
-        
-        /* Khusus untuk canvas editor */
-        #editor-canvas {
-            display: block;
-            width: 100%;
-            height: auto;
-            max-width: 450px;
-            max-height: 450px;
-            object-fit: contain;
-        }
-
 
         /* Styling untuk bottom navigation */
-        #bottom-nav {
+        .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
-            width: 100%;
+            right: 0;
+            z-index: 50;
             background-color: white;
-            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
-            z-index: 500;
-        }
-
-        /* Tombol utama untuk pendaftaran */
-        .service-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .service-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(4, 120, 87, 0.2);
-        }
-
-        /* Animasi loading */
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #047857;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Styling untuk Canvas Bukti Pendaftaran */
-        #proof-canvas {
-            border: 1px solid #ddd;
-            display: none; /* Sembunyikan canvas default */
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
         }
         
+        /* Utility untuk menyembunyikan elemen di mobile tapi ditampilkan di desktop */
+        .desktop-only {
+            display: none;
+        }
+        @media (min-width: 768px) {
+            .desktop-only {
+                display: block;
+            }
+            .mobile-only {
+                display: none;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="min-h-screen pb-16 md:pb-0">
 
-    <!-- Konten Utama Website -->
-    <div id="app-container" class="max-w-4xl mx-auto p-4 md:p-8">
-        <!-- Header / Navigation Bar (Tinggi) -->
-        <header class="mb-8 p-4 bg-white rounded-xl shadow-md">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <!-- Placeholder Logo RSUD Talaud -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-600"><path d="M12 2L2 7v10l10 5 10-5V7l-10-5z"></path><path d="M12 2v20"></path><path d="M17 7L7 12"></path><path d="M7 7l10 5"></path></svg>
-                    <h1 class="text-2xl font-extrabold text-gray-800">SI-Sehat</h1>
-                </div>
-            </div>
+    <!-- Konten Utama (Beranda) -->
+    <div id="home-view" class="container mx-auto p-4 md:p-8 pt-8">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-blue-700 mb-2">SI-Sehat RSUD Talaud</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">Sistem Pendaftaran Online untuk Layanan Rawat Jalan dan Surat Keterangan Kesehatan RSUD Talaud.</p>
         </header>
 
-        <!-- Area Konten Dinamis -->
-        <main id="main-content">
-            <!-- Isi akan dimuat oleh JavaScript -->
-        </main>
-    </div>
+        <!-- Informasi Operasional -->
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-lg mb-8 shadow-md" role="alert">
+            <div class="flex items-center">
+                <i data-lucide="clock" class="w-6 h-6 mr-3"></i>
+                <p class="font-semibold text-lg">Jam Operasional Pendaftaran Online:</p>
+            </div>
+            <p class="ml-9">Setiap hari kerja, Pendaftaran dibuka pukul <span class="font-bold">08.00 – 12.00 WITA</span>.</p>
+        </div>
 
-    <!-- 1. POPUP FORM SISTEM (Popup Utama) -->
-    <div id="main-popup-overlay" class="popup-overlay" onclick="closeMainPopup(event)">
-        <div id="main-popup-content" class="popup-content" onclick="event.stopPropagation()">
-            <!-- Konten Form akan di-inject di sini -->
+        <!-- Kartu Layanan Utama -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Layanan Pendaftaran</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+            
+            <!-- Pendaftaran Rawat Jalan -->
+            <button onclick="openForm('rawat-jalan', 'Pendaftaran Rawat Jalan')" class="service-card group">
+                <i data-lucide="hospital" class="w-8 h-8 mb-3 text-blue-600 group-hover:text-white transition-colors"></i>
+                <h3 class="text-xl font-semibold">Rawat Jalan</h3>
+                <p class="text-sm text-gray-500 group-hover:text-blue-100">Daftar poli sesuai jadwal dokter.</p>
+            </button>
+            
+            <!-- Pendaftaran SKBS -->
+            <button onclick="openForm('skbs', 'Pendaftaran Surat Keterangan Berbadan Sehat')" class="service-card group">
+                <i data-lucide="heart-pulse" class="w-8 h-8 mb-3 text-green-600 group-hover:text-white transition-colors"></i>
+                <h3 class="text-xl font-semibold">SKBS (Sehat)</h3>
+                <p class="text-sm text-gray-500 group-hover:text-green-100">Surat Keterangan Berbadan Sehat.</p>
+            </button>
+
+            <!-- Pendaftaran SKBN -->
+            <button onclick="openForm('skbn', 'Pendaftaran Surat Keterangan Bebas Narkoba')" class="service-card group">
+                <i data-lucide="syringe" class="w-8 h-8 mb-3 text-red-600 group-hover:text-white transition-colors"></i>
+                <h3 class="text-xl font-semibold">SKBN (Narkoba)</h3>
+                <p class="text-sm text-gray-500 group-hover:text-red-100">Surat Keterangan Bebas Narkoba (Napza).</p>
+            </button>
+            
+            <!-- Pendaftaran SKBS & SKBN (Gabungan 2 Surat) - Fitur Lama -->
+            <button onclick="openForm('skbs-skbn-old', 'Pendaftaran Gabungan SKBS & SKBN')" class="service-card group">
+                <i data-lucide="book-open-check" class="w-8 h-8 mb-3 text-purple-600 group-hover:text-white transition-colors"></i>
+                <h3 class="text-xl font-semibold">SKBS & SKBN (Lama)</h3>
+                <p class="text-sm text-gray-500 group-hover:text-purple-100">Dua surat sekaligus (Sehat & Narkoba).</p>
+            </button>
+
+            <!-- Pendaftaran SKBS/SKBN (2 Surat Sekaligus) - Fitur Baru -->
+            <button onclick="openForm('skbs-skbn-new', 'Pendaftaran 2 Surat Sekaligus (SKBS/SKBN)')" class="service-card group">
+                <i data-lucide="clipboard-check" class="w-8 h-8 mb-3 text-indigo-600 group-hover:text-white transition-colors"></i>
+                <h3 class="text-xl font-semibold">SKBS/SKBN (BARU)</h3>
+                <p class="text-sm text-gray-500 group-hover:text-indigo-100">Daftar dua surat dengan tujuan berbeda.</p>
+            </button>
+
+            <!-- Tombol Jadwal Dokter di Beranda -->
+            <button onclick="showScheduleModal()" class="service-card group sm:col-span-2 lg:col-span-2 bg-gray-50 hover:bg-gray-100 border border-gray-300 hover:border-blue-500 shadow-none hover:shadow-lg transition-all duration-300">
+                <i data-lucide="calendar-days" class="w-8 h-8 mb-3 text-gray-600 group-hover:text-blue-700 transition-colors"></i>
+                <h3 class="text-xl font-semibold text-gray-800">Lihat Jadwal Dokter</h3>
+                <p class="text-sm text-gray-500 group-hover:text-gray-600">Jadwal lengkap Rawat Jalan Senin - Sabtu.</p>
+            </button>
+
         </div>
     </div>
+    
+    <!-- Bagian Pendaftaran (Hidden, hanya untuk navigasi bawah) -->
+    <div id="pendaftaran-view" class="container mx-auto p-4 md:p-8 pt-8 hidden">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Pendaftaran Online</h2>
+        <p class="text-gray-600 mb-8">Pilih jenis layanan yang ingin Anda daftarkan. Anda dapat kembali ke menu utama untuk melihat semua kartu layanan.</p>
+        
+        <!-- Redirect ke menu utama/kartu layanan -->
+        <button onclick="switchView('home-view')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all flex items-center justify-center w-full max-w-xs mx-auto">
+            <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i>
+            Kembali ke Kartu Layanan
+        </button>
+    </div>
 
-    <!-- 2. IMAGE EDITOR POPUP (Rotate & Crop) -->
-    <div id="image-editor-popup-overlay" class="popup-overlay" onclick="closeImageEditor(event)">
-        <div id="image-editor-popup-content" class="popup-content !max-w-xl" onclick="event.stopPropagation()">
-            <div class="p-6">
-                <div class="flex justify-between items-start mb-4">
-                    <h2 class="text-2xl font-bold text-teal-700 flex items-center">
-                        <i data-lucide="crop" class="w-6 h-6 mr-2"></i>
-                        Edit Foto KTP
-                    </h2>
-                    <button onclick="closeImageEditor()" class="text-gray-400 hover:text-gray-600">
-                        <i data-lucide="x" class="w-6 h-6"></i>
-                    </button>
-                </div>
-                <p class="text-gray-600 mb-4 text-sm">Gunakan tombol putar (Rotate) jika foto KTP miring.</p>
-                
-                <!-- Area Editor Canvas -->
-                <div class="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-xl min-h-[300px]">
-                    <!-- Canvas temporer untuk editing -->
-                    <canvas id="editor-canvas" class="max-w-full border border-gray-300 rounded-lg hidden"></canvas>
-                    <p id="editor-loading" class="text-gray-500 mt-4 flex items-center space-x-2">
-                        <div class="loader mr-2"></div>
-                        <span>Memuat gambar...</span>
-                    </p>
-                </div>
-
-                <div class="flex justify-center space-x-4 mt-6">
-                    <button id="rotate-button" onclick="rotateImage()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-300 flex items-center space-x-2 disabled:bg-gray-400">
-                        <i data-lucide="rotate-cw" class="w-5 h-5"></i>
-                        <span>Putar 90°</span>
-                    </button>
-                </div>
-
-                <div class="mt-6 border-t pt-4">
-                    <button id="finalize-button" onclick="finalizeImage()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 flex items-center justify-center space-x-2 disabled:bg-gray-400">
-                        <i data-lucide="save" class="w-5 h-5"></i>
-                        <span>SIMPAN & LANJUTKAN</span>
-                    </button>
-                </div>
+    <!-- Bagian Informasi (Hidden, hanya untuk navigasi bawah) -->
+    <div id="informasi-view" class="container mx-auto p-4 md:p-8 pt-8 hidden">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Informasi dan Kontak</h2>
+        <div class="space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-xl font-bold text-blue-700 mb-2 flex items-center"><i data-lucide="map-pin" class="w-5 h-5 mr-2"></i> Alamat RSUD</h3>
+                <p class="text-gray-600">RSUD Talaud, Jl. Kompleks Perkantoran, Melonguane, Kabupaten Kepulauan Talaud, Sulawesi Utara.</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-xl font-bold text-blue-700 mb-2 flex items-center"><i data-lucide="phone" class="w-5 h-5 mr-2"></i> Kontak Darurat</h3>
+                <p class="text-gray-600">Telepon Utama: (0433) 21xxx (Contoh)</p>
+                <p class="text-gray-600">Email: rsudtalaud@sehat.id</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-xl font-bold text-blue-700 mb-2 flex items-center"><i data-lucide="shield-alert" class="w-5 h-5 mr-2"></i> Perhatian</h3>
+                <p class="text-gray-600">Pastikan data yang diisi benar. Proses validasi dilakukan saat Anda datang ke RSUD. Bukti pendaftaran akan dikirim ke sistem kami secara otomatis.</p>
             </div>
         </div>
     </div>
 
-
-    <!-- 3. RESULT POPUP (Ringkasan & Bukti) -->
-    <div id="result-popup-overlay" class="popup-overlay" onclick="closeResultPopup(event)">
-        <div id="result-popup-content" class="popup-content !max-w-lg" onclick="event.stopPropagation()">
-            <div class="p-6">
-                <h2 class="text-2xl font-bold text-teal-700 mb-4 flex items-center">
-                    <i data-lucide="check-circle" class="w-6 h-6 mr-2"></i>
-                    Pendaftaran Berhasil!
-                </h2>
-                <div id="result-popup-details" class="bg-teal-50 border border-teal-200 p-4 rounded-xl text-gray-800 mb-6 space-y-2">
-                    <!-- Detail pendaftaran akan di-inject di sini -->
-                </div>
-                
-                <!-- Area Canvas untuk Bukti Pendaftaran (Hanya untuk logic JS) -->
-                <canvas id="proof-canvas" width="450" height="700" class="hidden"></canvas>
-                
-                <!-- Status Telegram -->
-                <div id="telegram-status" class="p-3 mb-4 rounded-xl text-sm font-medium flex items-center space-x-2 hidden">
-                    <!-- Status pengiriman akan di-inject di sini -->
-                </div>
-
-                <div class="space-y-4">
-                    <button id="download-button" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 shadow-lg shadow-teal-500/50 flex items-center justify-center space-x-2">
-                        <i data-lucide="download" class="w-5 h-5"></i>
-                        <span>UNDUH Bukti Pendaftaran (Gambar)</span>
-                    </button>
-                    <button onclick="closeResultPopup()" class="w-full text-sm text-gray-500 hover:text-gray-700 mt-2 py-2">
-                        Tutup
-                    </button>
-                </div>
-            </div>
+    <!-- Bottom Navigation (Mobile Only) -->
+    <nav class="bottom-nav mobile-only">
+        <div class="flex justify-around items-center h-16 max-w-md mx-auto">
+            <button onclick="switchView('home-view')" class="nav-item active" data-view="home-view">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span class="text-xs mt-1">Beranda</span>
+            </button>
+            <button onclick="switchView('pendaftaran-view')" class="nav-item" data-view="pendaftaran-view">
+                <i data-lucide="file-text" class="w-6 h-6"></i>
+                <span class="text-xs mt-1">Pendaftaran</span>
+            </button>
+            <button onclick="showScheduleModal()" class="nav-item">
+                <i data-lucide="calendar-days" class="w-6 h-6"></i>
+                <span class="text-xs mt-1">Jadwal</span>
+            </button>
+            <button onclick="switchView('informasi-view')" class="nav-item" data-view="informasi-view">
+                <i data-lucide="info" class="w-6 h-6"></i>
+                <span class="text-xs mt-1">Informasi</span>
+            </button>
         </div>
-    </div>
-
-    <!-- 4. POPUP JADWAL DOKTER -->
-    <div id="schedule-popup-overlay" class="popup-overlay" onclick="closeSchedulePopup(event)">
-        <div id="schedule-popup-content" class="popup-content !max-w-3xl" onclick="event.stopPropagation()">
-            <div class="p-6">
-                <h2 class="text-2xl font-bold text-teal-700 mb-6 flex items-center justify-between">
-                    <span><i data-lucide="calendar-check" class="w-6 h-6 mr-2 inline-block"></i> Jadwal Dokter RSUD Talaud</span>
-                    <button onclick="closeSchedulePopup()" class="text-gray-400 hover:text-gray-600">
-                        <i data-lucide="x" class="w-6 h-6"></i>
-                    </button>
-                </h2>
-                <div id="schedule-table-container">
-                    <!-- Tabel jadwal akan di-inject di sini -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 5. BOTTOM NAVIGATION (Menu Bawah) -->
-    <nav id="bottom-nav" class="flex justify-around items-center h-20">
-        <button onclick="changePage('beranda')" class="nav-item flex flex-col items-center justify-center p-2 text-teal-600">
-            <i data-lucide="home" class="w-6 h-6"></i>
-            <span class="text-xs font-medium mt-1">Beranda</span>
-        </button>
-        <button onclick="changePage('pendaftaran')" class="nav-item flex flex-col items-center justify-center p-2 text-gray-500 hover:text-teal-600">
-            <i data-lucide="clipboard-list" class="w-6 h-6"></i>
-            <span class="text-xs font-medium mt-1">Pendaftaran</span>
-        </button>
-        <button onclick="openSchedulePopup()" class="nav-item flex flex-col items-center justify-center p-2 text-gray-500 hover:text-teal-600">
-            <i data-lucide="stethoscope" class="w-6 h-6"></i>
-            <span class="text-xs font-medium mt-1">Jadwal Dokter</span>
-        </button>
-        <button onclick="changePage('informasi')" class="nav-item flex flex-col items-center justify-center p-2 text-gray-500 hover:text-teal-600">
-            <i data-lucide="info" class="w-6 h-6"></i>
-            <span class="text-xs font-medium mt-1">Informasi</span>
-        </button>
     </nav>
 
-    <!-- JavaScript Logic -->
-    <script>
-        // --- KONSTANTA & DATA ---
+    <!-- Popup Form (Modal General) -->
+    <div id="form-modal" class="modal-overlay" onclick="closeModal(this)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-5 border-b">
+                <h2 id="form-title" class="text-xl font-bold text-gray-800"></h2>
+                <button onclick="closeModal(document.getElementById('form-modal'))" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <form id="registration-form" class="p-6 space-y-5">
+                <!-- Konten form akan diisi oleh JavaScript -->
+                <div id="form-content"></div>
 
-        // Telegram API Credentials
+                <!-- Bagian KTP Preview (Ada di semua form) -->
+                <div class="border-t pt-5 mt-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Upload Foto KTP <span class="text-red-500">*</span></label>
+                    <input type="file" id="ktp-upload" name="ktp-upload" accept="image/*" required onchange="handleKTPChange(event)" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    
+                    <div id="ktp-preview-container" class="mt-4 p-4 border border-dashed border-gray-300 rounded-lg hidden">
+                        <p class="text-sm font-medium text-gray-700 mb-2">Preview Foto KTP:</p>
+                        <img id="ktp-preview" src="#" alt="Preview KTP" class="max-w-full h-auto rounded-lg shadow-md" style="max-height: 200px; width: auto;">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" id="submit-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center">
+                        <i data-lucide="send" class="w-5 h-5 mr-2"></i>
+                        DAFTAR & KIRIM BUKTI
+                    </button>
+                    <p id="loading-message" class="text-center text-sm text-blue-500 mt-2 hidden">
+                        <i data-lucide="loader-circle" class="w-4 h-4 mr-1 inline animate-spin"></i>
+                        Sedang memproses dan mengirim bukti ke Telegram...
+                    </p>
+                </div>
+            </form>
+            
+            <!-- Canvas untuk Bukti Pendaftaran (Hidden) -->
+            <canvas id="registration-proof-canvas" style="display: none;"></canvas>
+            
+        </div>
+    </div>
+    
+    <!-- Popup Super-Popup (Konfirmasi Setelah Daftar) -->
+    <div id="super-popup" class="modal-overlay" onclick="closeModal(this)">
+        <div class="modal-content max-w-lg" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center bg-blue-600 text-white p-5 rounded-t-xl">
+                <h2 class="text-xl font-bold flex items-center"><i data-lucide="check-circle" class="w-6 h-6 mr-2"></i> Pendaftaran Berhasil!</h2>
+                <button onclick="closeModal(document.getElementById('super-popup'))" class="text-blue-100 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 text-center">
+                <p class="text-gray-700 mb-4">Bukti pendaftaran telah berhasil dibuat dan otomatis dikirimkan ke sistem RSUD via Telegram.</p>
+                
+                <div class="bg-blue-50 p-4 rounded-xl mb-6 border-blue-200 border">
+                    <p class="text-sm text-gray-500 mb-1">Kode Pendaftaran Anda:</p>
+                    <p id="super-popup-code" class="text-3xl font-extrabold text-blue-700 mb-3"></p>
+                    <p class="text-sm text-gray-600">Tunjukkan kode ini saat verifikasi di loket pendaftaran.</p>
+                </div>
+                
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Ringkasan Data:</h3>
+                <div id="super-popup-summary" class="text-left text-sm space-y-1 bg-gray-50 p-4 rounded-lg border">
+                    <!-- Ringkasan akan diisi oleh JavaScript -->
+                </div>
+                
+                <button onclick="downloadProof()" class="mt-6 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center">
+                    <i data-lucide="download" class="w-5 h-5 mr-2"></i>
+                    DOWNLOAD Bukti (Opsional)
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Popup Jadwal Dokter (Tabel) -->
+    <div id="schedule-modal" class="modal-overlay" onclick="closeModal(this)">
+        <div class="modal-content max-w-4xl" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center p-5 border-b">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center"><i data-lucide="calendar" class="w-6 h-6 mr-2"></i> Jadwal Dokter Rawat Jalan</h2>
+                <button onclick="closeModal(document.getElementById('schedule-modal'))" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 rounded-xl overflow-hidden shadow-lg">
+                        <thead class="bg-blue-700 text-white">
+                            <tr>
+                                <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider sticky left-0 bg-blue-700 w-20">Hari</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider">Poli Anak</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider">Poli Dalam</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider">Poli Bedah</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider">Poli Obgyn</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider">Poli KIA/KB</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider">Poli Mata</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schedule-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Jadwal akan diisi oleh JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Data Jadwal Dokter
+        const SCHEDULE = {
+            'Anak': {
+                'Senin': 'dr. Hilda A. Tasiringan, Sp.A (08.00-10.00)',
+                'Selasa': 'dr. Hilda A. Tasiringan, Sp.A (08.00-12.00)',
+                'Rabu': 'dr. Hilda A. Tasiringan, Sp.A (08.00-12.00)',
+                'Kamis': 'dr. Hilda A. Tasiringan, Sp.A (08.00-10.00)',
+                'Jumat': 'dr. Hilda A. Tasiringan, Sp.A (08.00-10.00)',
+                'Sabtu': 'dr. Hilda A. Tasiringan, Sp.A (13.00-17.00)',
+            },
+            'Penyakit Dalam': {
+                'Senin': 'dr. Ferdinan Goutama, Sp.PD (08.00-12.00)',
+                'Selasa': 'dr. Ferdinan Goutama, Sp.PD (08.00-12.00)',
+                'Rabu': 'dr. Ferdinan Goutama, Sp.PD (08.00-12.00)',
+                'Kamis': 'dr. Ferdinan Goutama, Sp.PD (08.00-12.00)',
+                'Jumat': 'dr. Ferdinan Goutama, Sp.PD (08.00-12.00)',
+                'Sabtu': 'TUTUP', // Data kosong untuk Sabtu
+            },
+            'Bedah': {
+                'Senin': 'dr. Stianila W. Sedu, MPH, Sp.PB (08.00-10.00) & dr. Jonathan N. Lukas, Sp.PB (10.00-12.00)',
+                'Selasa': 'dr. Stianila W. Sedu, MPH, Sp.PB (08.00-10.00) & dr. Jonathan N. Lukas, Sp.PB (10.00-12.00)',
+                'Rabu': 'dr. Stianila W. Sedu, MPH, Sp.PB (08.00-10.00) & dr. Jonathan N. Lukas, Sp.PB (10.00-12.00)',
+                'Kamis': 'dr. Stianila W. Sedu, MPH, Sp.PB (08.00-10.00) & dr. Jonathan N. Lukas, Sp.PB (10.00-12.00)',
+                'Jumat': 'dr. Stianila W. Sedu, MPH, Sp.PB (03.00-17.00)',
+                'Sabtu': 'dr. Stianila W. Sedu, MPH, Sp.PB (08.00-10.00) & dr. Jonathan N. Lukas, Sp.PB (10.00-12.00)',
+            },
+            'Obgyn': {
+                'Senin': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+                'Selasa': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+                'Rabu': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+                'Kamis': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+                'Jumat': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+                'Sabtu': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+            },
+            'KIA/KB': { // Menggunakan jadwal Obgyn sebagai fallback/standar
+                'Senin': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+                'Selasa': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+                'Rabu': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+                'Kamis': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+                'Jumat': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+                'Sabtu': 'dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)',
+            },
+            'Mata': {
+                'Senin': 'dr. David P. Ondaatje, Sp.M (08.00-12.00)',
+                'Selasa': 'dr. David P. Ondaatje, Sp.M (08.00-12.00)',
+                'Rabu': 'dr. David P. Ondaatje, Sp.M (08.00-12.00)',
+                'Kamis': 'dr. David P. Ondaatje, Sp.M (08.00-12.00)',
+                'Jumat': 'dr. David P. Ondaatje, Sp.M (08.00-12.00)',
+                'Sabtu': 'dr. David P. Ondaatje, Sp.M (08.00-12.00)',
+            }
+        };
+
+        // Konfigurasi Telegram
         const TELEGRAM_CONFIG = {
-            'Rawat Jalan': {
+            'rawat-jalan': {
                 token: '8413247937:AAG7ahJ9Okki2X0vGrOGR4AbX0H3NJeYFDE',
                 chatId: '-1003422565471'
             },
-            'Surat Keterangan': { // Digunakan untuk SKBS, SKBN, dan Gabungan
-                token: '8576988803:AAGHxQ_PJ5SsSWRtcP3x8B7RVTliBvANHk',
+            'skbs-skbn': { // Digunakan untuk SKBS, SKBN, SKBS & SKBN (Old), dan SKBS/SKBN (New)
+                token: '8576988803:AAGHxQ_PJ6SsSWRtcP3x8B7RVTliBvANhHk',
                 chatId: '-1003466725898'
             }
         };
 
-        // Jadwal Dokter (Diambil dari data yang Anda berikan)
-        const DOCTOR_SCHEDULE = {
-            "Senin": {
-                "Poli Anak": "dr. Hilda A. Tasiringan, Sp.A (08.00-10.00)",
-                "Penyakit Dalam": "dr. Ferdinan Goutama, Sp.PD (08.00-12.00)",
-                "Bedah": "dr. Stianila W. Sedu, MPH, Sp.PB (08.00-10.00) / dr. Jonathan N. Lukas, Sp.PB (10.00-12.00)",
-                "Obgyn": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "KIA/KB": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "Mata": "dr. David P. Ondaatje, Sp.M (08.00-12.00)"
-            },
-            "Selasa": {
-                "Poli Anak": "dr. Hilda A. Tasiringan, Sp.A (08.00-12.00)",
-                "Penyakit Dalam": "dr. Ferdinan Goutama, Sp.PD (08.00-12.00)",
-                "Bedah": "dr. Stianila W. Sedu, MPH, Sp.PB (08.00-10.00) / dr. Jonathan N. Lukas, Sp.PB (10.00-12.00)",
-                "Obgyn": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "KIA/KB": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "Mata": "dr. David P. Ondaatje, Sp.M (08.00-12.00)"
-            },
-            "Rabu": {
-                "Poli Anak": "dr. Hilda A. Tasiringan, Sp.A (08.00-12.00)",
-                "Penyakit Dalam": "dr. Ferdinan Goutama, Sp.PD (08.00-12.00)",
-                "Bedah": "dr. Stianila W. Sedu, MPH, Sp.PB (08.00-10.00) / dr. Jonathan N. Lukas, Sp.PB (10.00-12.00)",
-                "Obgyn": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "KIA/KB": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "Mata": "dr. David P. Ondaatje, Sp.M (08.00-12.00)"
-            },
-            "Kamis": {
-                "Poli Anak": "dr. Hilda A. Tasiringan, Sp.A (08.00-10.00)",
-                "Penyakit Dalam": "dr. Ferdinan Goutama, Sp.PD (08.00-12.00)",
-                "Bedah": "dr. Stianila W. Sedu, MPH, Sp.PB (08.00-10.00) / dr. Jonathan N. Lukas, Sp.PB (10.00-12.00)",
-                "Obgyn": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "KIA/KB": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "Mata": "dr. David P. Ondaatje, Sp.M (08.00-12.00)"
-            },
-            "Jumat": {
-                "Poli Anak": "dr. Hilda A. Tasiringan, Sp.A (08.00-10.00)",
-                "Penyakit Dalam": "dr. Ferdinan Goutama, Sp.PD (08.00-12.00)",
-                "Bedah": "dr. Stianila W. Sedu, MPH, Sp.PB (03.00-17.00) / dr. Jonathan N. Lukas, Sp.PB (08.00-12.00)",
-                "Obgyn": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "KIA/KB": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "Mata": "dr. David P. Ondaatje, Sp.M (08.00-12.00)"
-            },
-            "Sabtu": {
-                "Poli Anak": "dr. Hilda A. Tasiringan, Sp.A (13.00-17.00)",
-                // Penyakit Dalam tidak ada jadwal di Sabtu dari data yang diberikan
-                "Bedah": "dr. Stianila W. Sedu, MPH, Sp.PB (08.00-10.00) / dr. Jonathan N. Lukas, Sp.PB (10.00-12.00)",
-                "Obgyn": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "KIA/KB": "dr. Rita M. Peginusa, Sp.Og(K) (08.00-12.00)",
-                "Mata": "dr. David P. Ondaatje, Sp.M (08.00-12.00)"
-            }
-        };
+        let currentServiceType = '';
+        let ktpBase64Image = null; // Menyimpan data URL KTP
+        let registrationData = {}; // Menyimpan data pendaftaran
 
-        // Simpan data pendaftaran sementara
-        let REGISTRATION_DATA = {};
-        
-        // Simpan KTP Data URL sementara untuk Canvas dan Telegram
-        let KTP_DATA_URL = '';
+        // --- Utils & UI Functions ---
 
-        // Variabel untuk Image Editor
-        let TEMP_IMAGE_DATA = null; 
-        let CURRENT_ROTATION = 0;
+        // Fungsi untuk mengganti tampilan (navigasi bawah)
+        function switchView(viewId) {
+            const views = ['home-view', 'pendaftaran-view', 'informasi-view'];
+            views.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
 
-        // --- UTILITY FUNCTIONS ---
-
-        // Fungsi untuk menghasilkan kode pendaftaran unik
-        function generateRegistrationCode() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let code = '';
-            for (let i = 0; i < 8; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return `TLA-${code}`;
-        }
-
-        // Fungsi untuk mendapatkan nama hari ini dalam Bahasa Indonesia
-        function getCurrentDayName() {
-            const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-            return days[new Date().getDay()];
-        }
-
-        // --- PAGE/VIEW RENDERING ---
-
-        function changePage(pageName) {
-            const contentDiv = document.getElementById('main-content');
-            let html = '';
-
-            // Hapus semua kelas 'active' dari bottom nav
+            // Update active state di bottom nav
             document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('text-teal-600');
-                item.classList.add('text-gray-500', 'hover:text-teal-600');
+                if (item.getAttribute('data-view') === viewId) {
+                    item.classList.add('text-blue-600', 'font-semibold');
+                    item.classList.remove('text-gray-500');
+                } else {
+                    item.classList.remove('text-blue-600', 'font-semibold');
+                    item.classList.add('text-gray-500');
+                }
             });
             
-            // Tandai tombol nav yang aktif
-            const activeNavButton = document.querySelector(`[onclick="changePage('${pageName}')"]`);
-            if (activeNavButton) {
-                activeNavButton.classList.remove('text-gray-500', 'hover:text-teal-600');
-                activeNavButton.classList.add('text-teal-600');
+            // Scroll ke atas setiap ganti view
+            window.scrollTo(0, 0);
+        }
+
+        // Default: set home view active
+        switchView('home-view');
+
+
+        // Fungsi untuk membuka modal
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        // Fungsi untuk menutup modal
+        function closeModal(modalElement) {
+            modalElement.classList.remove('active');
+            // Reset form dan preview KTP saat modal form ditutup
+            if (modalElement.id === 'form-modal') {
+                document.getElementById('registration-form').reset();
+                document.getElementById('ktp-preview-container').classList.add('hidden');
+                document.getElementById('ktp-preview').src = '#';
+                ktpBase64Image = null;
             }
-
-            if (pageName === 'beranda') {
-                html = `
-                    <div class="bg-teal-600 text-white p-8 rounded-3xl shadow-xl mb-8">
-                        <p class="text-sm font-semibold opacity-80">Sistem Informasi Pendaftaran Online</p>
-                        <h2 class="text-4xl font-extrabold mt-1 mb-4">SI-Sehat RSUD Talaud</h2>
-                        <p class="text-teal-100 mb-6">Nikmati kemudahan pendaftaran layanan kesehatan dan surat keterangan secara online tanpa antri. Cukup isi form dan dapatkan bukti pendaftaran instan.</p>
-                        <div class="bg-teal-700 p-4 rounded-xl text-sm font-medium">
-                            <p class="font-bold mb-1">Jam Operasional Pendaftaran:</p>
-                            <p>Pendaftaran dibuka pukul 08.00 – 12.00 WITA setiap hari kerja.</p>
-                        </div>
-                    </div>
-                    
-                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Informasi & Layanan Cepat</h3>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        ${renderServiceCard('Pendaftaran Online', 'clipboard-list', 'Pilih Layanan Pendaftaran', 'Akses ke semua form pendaftaran Rawat Jalan dan Surat Keterangan.', 'pendaftaran')}
-                        ${renderServiceCard('Jadwal Dokter', 'calendar', 'Lihat Jadwal Dokter Hari Ini', 'Informasi lengkap jadwal dokter spesialis yang bertugas.', 'jadwal_dokter')}
-                    </div>
-                `;
-            } else if (pageName === 'pendaftaran') {
-                html = `
-                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Pilih Layanan Pendaftaran</h2>
-                    <p class="text-gray-600 mb-8">Silakan pilih jenis layanan yang Anda butuhkan untuk memulai proses pendaftaran online.</p>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        ${renderServiceCard('Rawat Jalan', 'hospital', 'Pendaftaran Rawat Jalan', 'Kunjungan Poliklinik.', 'rawat_jalan')}
-                        ${renderServiceCard('SKBS', 'heart-handshake', 'Surat Keterangan Berbadan Sehat', 'Surat Keterangan Sehat.', 'skbs')}
-                        ${renderServiceCard('SKBN', 'syringe', 'Surat Keterangan Bebas Narkoba', 'Surat Bebas Narkoba.', 'skbn')}
-                        ${renderServiceCard('SKBS/SKBN (Gabungan)', 'files', 'SKBS & SKBN Sekaligus', 'Surat Sehat dan Bebas Narkoba.', 'skbs_skbn_gabungan')}
-                    </div>
-                `;
-            } else if (pageName === 'jadwal_dokter') {
-                 html = `
-                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
-                        <i data-lucide="stethoscope" class="w-7 h-7 mr-3 text-teal-600"></i>
-                        Jadwal Dokter RSUD Talaud
-                    </h2>
-                    <p class="text-gray-600 mb-8">Tabel lengkap jadwal praktik dokter spesialis dari Senin hingga Sabtu.</p>
-                    <div id="full-schedule-view" class="bg-white p-6 rounded-2xl shadow-lg">
-                        <!-- Tabel jadwal akan di-inject di sini saat laman dibuka -->
-                    </div>
-                `;
-                // Tampilkan tabel saat page Jadwal Dokter diakses
-                contentDiv.innerHTML = html;
-                renderFullScheduleTable();
-
-                // Pastikan ikon diload setelah konten di-inject
-                lucide.createIcons();
-                return; // Hindari penggantian konten div lagi di akhir
-            } else if (pageName === 'informasi') {
-                html = `
-                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
-                        <i data-lucide="info" class="w-7 h-7 mr-3 text-teal-600"></i>
-                        Informasi Penting
-                    </h2>
-                    <div class="space-y-6">
-                        <div class="bg-white p-6 rounded-2xl shadow-lg">
-                            <h3 class="text-xl font-semibold text-teal-700 mb-3 flex items-center">
-                                <i data-lucide="shield-check" class="w-5 h-5 mr-2"></i>
-                                Prosedur Pendaftaran
-                            </h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li>Isi form pendaftaran dengan data diri yang valid dan benar.</li>
-                                <li>Pastikan foto KTP yang diupload jelas dan terbaca.</li>
-                                <li>Setelah daftar, simpan Kode Pendaftaran dan Bukti Pendaftaran (gambar).</li>
-                                <li>Tunjukkan Bukti Pendaftaran kepada petugas di loket RSUD Talaud saat hari kunjungan.</li>
-                            </ul>
-                        </div>
-                        <div class="bg-white p-6 rounded-2xl shadow-lg">
-                            <h3 class="text-xl font-semibold text-teal-700 mb-3 flex items-center">
-                                <i data-lucide="phone" class="w-5 h-5 mr-2"></i>
-                                Kontak Darurat
-                            </h3>
-                            <p class="text-gray-700">Untuk informasi lebih lanjut atau keadaan darurat, silakan hubungi:</p>
-                            <ul class="space-y-1 mt-3 text-gray-700 font-medium">
-                                <li><span class="font-bold">Telepon:</span> (0433) 21xxx</li>
-                                <li><span class="font-bold">Email:</span> info@rsudtalaud.go.id</li>
-                            </ul>
-                        </div>
-                    </div>
-                `;
-            }
-
-            contentDiv.innerHTML = html;
-            // Panggil lucide.createIcons() setiap kali konten baru di-inject
-            lucide.createIcons();
-        }
-
-        // Helper untuk membuat kartu layanan
-        function renderServiceCard(title, icon, subtitle, description, type) {
-            const isScheduleCard = type === 'jadwal_dokter';
-            const isPendaftaranPage = type === 'pendaftaran';
-            
-            let action;
-            if (isScheduleCard) {
-                action = `openSchedulePopup()`;
-            } else if (isPendaftaranPage) {
-                action = `changePage('pendaftaran')`;
-            } else {
-                action = `openFormPopup('${type}', '${title}')`;
-            }
-            
-            return `
-                <div class="service-card bg-white p-6 rounded-xl shadow-lg cursor-pointer border-t-4 border-teal-500" onclick="${action}">
-                    <div class="flex items-center space-x-4 mb-3">
-                        <i data-lucide="${icon}" class="w-8 h-8 text-teal-600"></i>
-                        <h4 class="text-xl font-semibold text-gray-800">${title}</h4>
-                    </div>
-                    <p class="text-sm text-gray-500">${description}</p>
-                </div>
-            `;
-        }
-
-        // --- POPUP & FORM LOGIC ---
-
-        function openMainPopup(title, formType) {
-            const popupOverlay = document.getElementById('main-popup-overlay');
-            const popupContent = document.getElementById('main-popup-content');
-            
-            // Clear KTP input dan preview saat buka form baru
-            KTP_DATA_URL = '';
-            
-            popupContent.innerHTML = `
-                <div class="p-6">
-                    <div class="flex justify-between items-start mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800">${title}</h3>
-                        <button onclick="closeMainPopup()" class="text-gray-400 hover:text-gray-600">
-                            <i data-lucide="x" class="w-6 h-6"></i>
-                        </button>
-                    </div>
-                    <form id="registration-form" onsubmit="return handleSubmit(event, '${formType}')">
-                        ${renderForm(formType)}
-                        
-                        <!-- Form Universal: KTP Preview & UPLOAD -->
-                        <div class="mt-6 border-t pt-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Foto KTP <span class="text-red-500">*</span></label>
-                            <input type="file" id="ktp_photo" name="ktp_photo" accept="image/*" required class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer" onchange="previewKtp()">
-                            
-                            <div class="mt-4 p-3 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50 flex justify-center items-center h-48">
-                                <img id="ktp-preview" class="hidden max-h-full max-w-full object-contain rounded" alt="Preview Foto KTP">
-                                <p id="ktp-placeholder" class="text-gray-400 text-sm">Preview Foto KTP Akan Tampil di Sini (Setelah Diedit)</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-8">
-                            <button type="submit" id="submit-button" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 flex items-center justify-center space-x-2 disabled:bg-gray-400">
-                                <span id="submit-text">DAFTAR SEKARANG</span>
-                                <div id="submit-loader" class="loader hidden"></div>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            `;
-            // Pastikan ikon diload
-            lucide.createIcons();
-            
-            // Tampilkan popup
-            popupOverlay.classList.add('open');
-        }
-
-        function closeMainPopup(event) {
-            if (event && event.target !== document.getElementById('main-popup-overlay')) return;
-            document.getElementById('main-popup-overlay').classList.remove('open');
-            // Reset KTP data saat popup ditutup
-            KTP_DATA_URL = '';
-            TEMP_IMAGE_DATA = null;
-            CURRENT_ROTATION = 0;
-        }
-
-        function openFormPopup(type, title) {
-            if (type === 'jadwal_dokter') {
-                openSchedulePopup();
-                return;
-            }
-            openMainPopup(title, type);
-        }
-
-        function renderForm(type) {
-            const commonFields = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    ${renderInput('text', 'Nama Lengkap', 'nama', 'Masukkan Nama Lengkap Anda', true)}
-                    ${renderInput('text', 'NIK', 'nik', 'Nomor Induk Kependudukan', type === 'rawat_jalan')}
-                    ${renderInput('tel', 'Nomor HP', 'no_hp', 'Contoh: 0812xxxxxx', type === 'rawat_jalan')}
-                    ${renderInput('date', 'Tanggal Lahir', 'tgl_lahir', '', type === 'rawat_jalan')}
-                    ${renderSelect('Jenis Kelamin', 'jenis_kelamin', ['Laki-laki', 'Perempuan'], true)}
-                    ${renderInput('text', 'Pekerjaan', 'pekerjaan', 'Contoh: Pelajar, Swasta', type !== 'rawat_jalan')}
-                </div>
-                ${renderInput('textarea', 'Alamat Lengkap', 'alamat', 'Alamat Domisili saat ini', true)}
-            `;
-            
-            if (type === 'rawat_jalan') {
-                const today = getCurrentDayName();
-                return `
-                    <h4 class="text-lg font-semibold text-teal-600 mb-4">Data Pasien</h4>
-                    ${commonFields}
-                    <h4 class="text-lg font-semibold text-teal-600 mb-4 mt-6">Pilihan Poliklinik</h4>
-                    ${renderSelect('Poliklinik Tujuan', 'poliklinik', ['Poli Anak', 'Penyakit Dalam', 'Bedah', 'Obgyn', 'KIA/KB', 'Mata'], true, "onchange=\"updateDoctorSchedule(this.value)\"")}
-                    <div id="doctor-schedule-info" class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-gray-800 hidden">
-                        <p class="font-semibold">Jadwal Dokter Hari ${today}:</p>
-                        <p id="doctor-info" class="mt-1"></p>
-                    </div>
-                `;
-            } else if (type === 'skbs') {
-                return `
-                    <h4 class="text-lg font-semibold text-teal-600 mb-4">Form Surat Keterangan Berbadan Sehat</h4>
-                    ${commonFields}
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        ${renderInput('number', 'Tinggi Badan (cm)', 'tinggi_badan', 'Tinggi badan Anda', true)}
-                        ${renderInput('number', 'Berat Badan (kg)', 'berat_badan', 'Berat badan Anda', true)}
-                    </div>
-                    ${renderInput('text', 'Tujuan Surat (SKBS)', 'tujuan_surat_skbs', 'Contoh: Syarat Melamar Kerja', true)}
-                `;
-            } else if (type === 'skbn') {
-                return `
-                    <h4 class="text-lg font-semibold text-teal-600 mb-4">Form Surat Keterangan Bebas Narkoba</h4>
-                    ${commonFields}
-                    ${renderInput('text', 'Tujuan Surat (SKBN)', 'tujuan_surat_skbn', 'Contoh: Syarat Pendaftaran Sekolah', true)}
-                `;
-            } else if (type === 'skbs_skbn_gabungan') {
-                 return `
-                    <h4 class="text-lg font-semibold text-teal-600 mb-4">Form Gabungan SKBS & SKBN</h4>
-                    <p class="text-sm text-gray-500 mb-4">Layanan untuk membuat dua surat sekaligus dalam satu proses.</p>
-                    ${commonFields}
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        ${renderInput('number', 'Tinggi Badan (cm)', 'tinggi_badan', 'Tinggi badan Anda', true)}
-                        ${renderInput('number', 'Berat Badan (kg)', 'berat_badan', 'Berat badan Anda', true)}
-                    </div>
-                    ${renderInput('text', 'Tujuan Surat (SKBS)', 'tujuan_surat_skbs', 'Contoh: Syarat Melamar Kerja', true)}
-                    ${renderInput('text', 'Tujuan Surat (SKBN)', 'tujuan_surat_skbn', 'Contoh: Syarat Pendaftaran Sekolah', true)}
-                    
-                    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <label class="flex items-center space-x-2 text-gray-700 font-medium">
-                            <input type="checkbox" name="service_skbs" checked disabled class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                            <span>Buat SKBS (Otomatis Tercentang)</span>
-                        </label>
-                        <label class="flex items-center space-x-2 text-gray-700 font-medium mt-2">
-                            <input type="checkbox" name="service_skbn" checked disabled class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                            <span>Buat SKBN (Otomatis Tercentang)</span>
-                        </label>
-                    </div>
-                `;
-            }
-            return '';
-        }
-
-        // Helper untuk input field
-        function renderInput(type, label, id, placeholder, required) {
-            const requiredAttr = required ? 'required' : '';
-            return `
-                <div>
-                    <label for="${id}" class="block text-sm font-medium text-gray-700">${label} ${required ? '<span class="text-red-500">*</span>' : ''}</label>
-                    <input type="${type}" id="${id}" name="${id}" placeholder="${placeholder}" ${requiredAttr} class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                </div>
-            `;
-        }
-
-        // Helper untuk select field
-        function renderSelect(label, id, options, required, extraAttr = '') {
-            const requiredAttr = required ? 'required' : '';
-            const optionHtml = options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
-            return `
-                <div>
-                    <label for="${id}" class="block text-sm font-medium text-gray-700">${label} ${required ? '<span class="text-red-500">*</span>' : ''}</label>
-                    <select id="${id}" name="${id}" ${requiredAttr} ${extraAttr} class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm bg-white">
-                        <option value="">-- Pilih --</option>
-                        ${optionHtml}
-                    </select>
-                </div>
-            `;
         }
         
-        // --- KTP IMAGE EDITOR LOGIC ---
+        // Fungsi untuk menampilkan jadwal dokter (popup table)
+        function showScheduleModal() {
+            populateScheduleTable();
+            openModal('schedule-modal');
+        }
 
-        function previewKtp() {
-            const fileInput = document.getElementById('ktp_photo');
+        // Fungsi Generator Kode Unik
+        function generateRegistrationCode() {
+            const timestamp = Date.now().toString().slice(-4);
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const randomChar = chars.charAt(Math.floor(Math.random() * chars.length));
+            const randomNum = Math.floor(1000 + Math.random() * 9000); // 4 digit random
+            return `${randomChar}${timestamp}${randomNum}`;
+        }
+
+        // Helper: Format data untuk ringkasan di super-popup
+        function formatSummary(data) {
+            let html = '';
+            for (const key in data) {
+                if (key !== 'Service Type' && key !== 'KTP Photo') {
+                    const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    html += `<p class="flex justify-between"><span class="font-medium text-gray-900">${label}:</span> <span>${data[key]}</span></p>`;
+                }
+            }
+            return html;
+        }
+
+        // Helper: Convert Data URL (Base64) to Blob
+        function dataURLtoBlob(dataurl) {
+            let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+            while(n--){
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new Blob([u8arr], {type:mime});
+        }
+
+
+        // --- KTP Preview Logic ---
+
+        function handleKTPChange(event) {
+            const file = event.target.files[0];
             const preview = document.getElementById('ktp-preview');
-            const placeholder = document.getElementById('ktp-placeholder');
-            const file = fileInput.files[0];
+            const container = document.getElementById('ktp-preview-container');
 
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    // 1. Tampilkan gambar yang dipilih di preview utama (sementara)
                     preview.src = e.target.result;
-                    preview.classList.remove('hidden');
-                    placeholder.classList.add('hidden');
-                    
-                    // 2. Buka editor untuk rotasi/crop
-                    openImageEditor(e.target.result);
-                }
-                // Baca file sebagai Data URL
+                    ktpBase64Image = e.target.result; // Simpan base64 untuk Canvas
+                    container.classList.remove('hidden');
+                };
                 reader.readAsDataURL(file);
             } else {
-                preview.src = '';
-                KTP_DATA_URL = '';
-                preview.classList.add('hidden');
-                placeholder.classList.remove('hidden');
+                preview.src = '#';
+                ktpBase64Image = null;
+                container.classList.add('hidden');
             }
         }
-        
-        function openImageEditor(dataUrl) {
-            const overlay = document.getElementById('image-editor-popup-overlay');
-            const editorCanvas = document.getElementById('editor-canvas');
-            const loadingEl = document.getElementById('editor-loading');
 
-            // Reset state
-            CURRENT_ROTATION = 0;
-            TEMP_IMAGE_DATA = null;
-            
-            loadingEl.classList.remove('hidden');
-            editorCanvas.classList.add('hidden');
+        // --- Form Definitions ---
 
-            const img = new Image();
-            img.crossOrigin = 'anonymous'; 
-            img.onload = () => {
-                TEMP_IMAGE_DATA = img;
-                loadingEl.classList.add('hidden');
-                editorCanvas.classList.remove('hidden');
+        const FORM_TEMPLATES = {
+            // A. Pendaftaran Rawat Jalan
+            'rawat-jalan': `
+                <input type="hidden" name="service-type" value="Rawat Jalan">
+                <input type="text" name="Nama" placeholder="Nama Lengkap" required class="input-field">
+                <input type="text" name="NIK" placeholder="NIK (16 Digit)" required pattern="[0-9]{16}" maxlength="16" class="input-field">
+                <input type="tel" name="No HP" placeholder="Nomor HP (WhatsApp)" required class="input-field">
+                <input type="date" name="Tgl Lahir" required class="input-field">
+                <select name="Jenis Kelamin" required class="input-field">
+                    <option value="">-- Pilih Jenis Kelamin --</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+                <textarea name="Alamat" placeholder="Alamat Lengkap" required class="input-field"></textarea>
                 
-                // Atur ukuran canvas untuk tampilan editor (max 450px)
-                const maxDim = 450; 
-                let scale = 1;
-                if (img.width > maxDim || img.height > maxDim) {
-                    scale = Math.min(maxDim / img.width, maxDim / img.height);
+                <div class="space-y-2">
+                    <select id="poli-select" name="Poliklinik" required class="input-field" onchange="updateDoctorSchedule(this.value)">
+                        <option value="">-- Pilih Poliklinik --</option>
+                        <option value="Anak">Poli Anak</option>
+                        <option value="Penyakit Dalam">Penyakit Dalam</option>
+                        <option value="Bedah">Bedah</option>
+                        <option value="Obgyn">Obgyn</option>
+                        <option value="KIA/KB">KIA/KB</option>
+                        <option value="Mata">Mata</option>
+                    </select>
+                    <div id="doctor-info" class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-gray-700 hidden">
+                        <p class="font-medium text-blue-700">Dokter & Jadwal Hari Ini (<span id="current-day"></span>):</p>
+                        <p id="doctor-schedule"></p>
+                    </div>
+                </div>
+            `,
+            // B. SKBS
+            'skbs': `
+                <input type="hidden" name="service-type" value="SKBS">
+                <input type="text" name="Nama" placeholder="Nama Lengkap" required class="input-field">
+                <input type="number" name="Umur" placeholder="Umur (Tahun)" required class="input-field">
+                <select name="Jenis Kelamin" required class="input-field">
+                    <option value="">-- Pilih Jenis Kelamin --</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+                <input type="text" name="Pekerjaan" placeholder="Pekerjaan" required class="input-field">
+                <textarea name="Alamat" placeholder="Alamat Lengkap" required class="input-field"></textarea>
+                <input type="number" name="Tinggi Badan (cm)" placeholder="Tinggi Badan (cm)" required class="input-field">
+                <input type="number" name="Berat Badan (kg)" placeholder="Berat Badan (kg)" required class="input-field">
+                <input type="text" name="Tujuan Surat" placeholder="Tujuan Pembuatan Surat (e.g., Syarat Melamar Kerja)" required class="input-field">
+            `,
+            // C. SKBN
+            'skbn': `
+                <input type="hidden" name="service-type" value="SKBN">
+                <input type="text" name="Nama" placeholder="Nama Lengkap" required class="input-field">
+                <input type="number" name="Umur" placeholder="Umur (Tahun)" required class="input-field">
+                <select name="Jenis Kelamin" required class="input-field">
+                    <option value="">-- Pilih Jenis Kelamin --</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+                <input type="text" name="Pekerjaan" placeholder="Pekerjaan" required class="input-field">
+                <textarea name="Alamat" placeholder="Alamat Lengkap" required class="input-field"></textarea>
+                <input type="text" name="Tujuan Surat" placeholder="Tujuan Pembuatan Surat (e.g., Syarat Mendaftar Sekolah/Kuliah)" required class="input-field">
+            `,
+            // D. SKBS & SKBN (Gabungan Dua Surat - Old)
+            'skbs-skbn-old': `
+                <input type="hidden" name="service-type" value="SKBS & SKBN (Gabungan)">
+                <p class="text-sm text-red-600 font-medium">Membuat SKBS dan SKBN dengan tujuan surat yang sama.</p>
+                <input type="text" name="Nama" placeholder="Nama Lengkap" required class="input-field">
+                <input type="number" name="Umur" placeholder="Umur (Tahun)" required class="input-field">
+                <select name="Jenis Kelamin" required class="input-field">
+                    <option value="">-- Pilih Jenis Kelamin --</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+                <input type="text" name="Pekerjaan" placeholder="Pekerjaan" required class="input-field">
+                <textarea name="Alamat" placeholder="Alamat Lengkap" required class="input-field"></textarea>
+                <input type="number" name="Tinggi Badan (cm)" placeholder="Tinggi Badan (cm)" required class="input-field">
+                <input type="number" name="Berat Badan (kg)" placeholder="Berat Badan (kg)" required class="input-field">
+                <input type="text" name="Tujuan Surat (SKBS & SKBN)" placeholder="Tujuan Pembuatan Surat (Sama untuk Keduanya)" required class="input-field">
+            `,
+            // E. SKBS/SKBN (2 Surat Sekaligus - New)
+            'skbs-skbn-new': `
+                <input type="hidden" name="service-type" value="SKBS/SKBN (2 Surat Sekaligus)">
+                <p class="text-sm text-indigo-600 font-medium">Fitur Baru: Anda dapat menentukan tujuan berbeda untuk setiap surat.</p>
+                <input type="text" name="Nama" placeholder="Nama Lengkap" required class="input-field">
+                <input type="number" name="Umur" placeholder="Umur (Tahun)" required class="input-field">
+                <select name="Jenis Kelamin" required class="input-field">
+                    <option value="">-- Pilih Jenis Kelamin --</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+                <input type="text" name="Pekerjaan" placeholder="Pekerjaan" required class="input-field">
+                <textarea name="Alamat" placeholder="Alamat Lengkap" required class="input-field"></textarea>
+                <input type="number" name="Tinggi Badan (cm)" placeholder="Tinggi Badan (cm)" required class="input-field">
+                <input type="number" name="Berat Badan (kg)" placeholder="Berat Badan (kg)" required class="input-field">
+                <input type="text" name="Tujuan SKBS" placeholder="Tujuan Surat SKBS" required class="input-field">
+                <input type="text" name="Tujuan SKBN" placeholder="Tujuan Surat SKBN" required class="input-field">
+                
+                <!-- Checkbox Pilihan -->
+                <div class="flex items-start flex-col space-y-2 bg-gray-50 p-3 rounded-lg border">
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" name="Buat SKBS" value="Ya" checked disabled class="form-checkbox text-indigo-600 rounded">
+                        <span>Buat SKBS (Keterangan Sehat)</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" name="Buat SKBN" value="Ya" checked disabled class="form-checkbox text-indigo-600 rounded">
+                        <span>Buat SKBN (Bebas Narkoba)</span>
+                    </label>
+                    <p class="text-xs text-gray-500 mt-1">Kedua surat otomatis tercentang dan akan dibuat.</p>
+                </div>
+            `,
+        };
+
+        // Custom styling for input fields
+        document.head.insertAdjacentHTML('beforeend', `
+            <style>
+                .input-field {
+                    width: 100%;
+                    padding: 10px 14px;
+                    border: 1px solid #d1d5db;
+                    border-radius: 8px;
+                    transition: border-color 0.3s, box-shadow 0.3s;
+                    font-size: 1rem;
                 }
-                
-                editorCanvas.width = img.width * scale;
-                editorCanvas.height = img.height * scale;
-
-                // Gambar ulang
-                redrawEditorCanvas();
-            };
-            img.onerror = () => {
-                alertUser('Gagal memuat gambar KTP untuk diedit. Mohon coba file lain.', 'error');
-                loadingEl.classList.add('hidden');
-            };
-            img.src = dataUrl;
-
-            overlay.classList.add('open');
-            document.getElementById('finalize-button').disabled = false;
-            document.getElementById('rotate-button').disabled = false;
-        }
-
-        function redrawEditorCanvas() {
-            if (!TEMP_IMAGE_DATA) return;
-
-            const canvas = document.getElementById('editor-canvas');
-            const ctx = canvas.getContext('2d');
-            const img = TEMP_IMAGE_DATA;
-            const angle = CURRENT_ROTATION * Math.PI / 180;
-            const isRotated = CURRENT_ROTATION % 180 !== 0;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.save();
-            
-            // Pindahkan titik pusat rotasi ke tengah canvas
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.rotate(angle);
-            
-            // Atur agar gambar selalu pas di dalam canvas saat diputar
-            let drawWidth, drawHeight;
-            if (isRotated) {
-                // Saat diputar, dimensi gambar di canvas berbalik
-                drawWidth = canvas.height;
-                drawHeight = canvas.width;
-            } else {
-                drawWidth = canvas.width;
-                drawHeight = canvas.height;
-            }
-
-            // Gambar gambar (pusat di tengah, ukuran sesuai canvas)
-            ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
-            
-            ctx.restore(); 
-        }
-
-        function rotateImage() {
-            CURRENT_ROTATION = (CURRENT_ROTATION + 90) % 360;
-            redrawEditorCanvas();
-        }
-
-        function finalizeImage() {
-            if (!TEMP_IMAGE_DATA) {
-                alertUser('Tidak ada gambar untuk diproses.', 'error');
-                return;
-            }
-            
-            document.getElementById('finalize-button').disabled = true;
-            document.getElementById('finalize-button').innerHTML = `<div class="loader mr-2"></div> <span>Memproses...</span>`;
-
-            const img = TEMP_IMAGE_DATA;
-            
-            // Canvas untuk rendering final (resolusi dan aspect ratio yang konsisten)
-            const finalCanvas = document.createElement('canvas');
-            const finalWidth = 600; 
-            const finalHeight = 400; // Aspect ratio KTP
-            finalCanvas.width = finalWidth;
-            finalCanvas.height = finalHeight;
-            const ctx = finalCanvas.getContext('2d');
-            
-            // Sudut rotasi dalam radian
-            const angle = CURRENT_ROTATION * Math.PI / 180;
-            
-            // Titik tengah canvas final
-            const centerX = finalWidth / 2;
-            const centerY = finalHeight / 2;
-
-            // 1. Lakukan Transformasi Rotasi
-            ctx.clearRect(0, 0, finalWidth, finalHeight);
-            ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.rotate(angle);
-
-            // Hitung proporsi gambar agar KTP muat dan tidak terpotong
-            const imgAspect = img.width / img.height;
-            const canvasAspect = finalWidth / finalHeight;
-            
-            let drawWidth, drawHeight;
-            
-            // Tentukan dimensi gambar asli yang akan digambar setelah diputar
-            if (isRotated = CURRENT_ROTATION % 180 !== 0) {
-                 // Jika diputar 90/270, gunakan img.height/img.width untuk rasio
-                drawWidth = finalHeight;
-                drawHeight = finalWidth;
-            } else {
-                drawWidth = finalWidth;
-                drawHeight = finalHeight;
-            }
-            
-            // Gambar gambar yang sudah diputar, diposisikan di tengah
-            ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
-
-            ctx.restore(); // Kembalikan context
-            
-            // 2. Simpan Data URL hasil rotasi
-            KTP_DATA_URL = finalCanvas.toDataURL('image/jpeg', 0.8); // Gunakan JPEG untuk ukuran file lebih kecil
-            
-            // 3. Update preview di form utama
-            const preview = document.getElementById('ktp-preview');
-            preview.src = KTP_DATA_URL;
-            
-            alertUser('Foto KTP berhasil diputar dan siap dikirim.', 'success');
-            closeImageEditor();
-        }
-
-        function closeImageEditor(event) {
-            if (event && event.target !== document.getElementById('image-editor-popup-overlay')) return;
-            document.getElementById('image-editor-popup-overlay').classList.remove('open');
-            document.getElementById('finalize-button').innerHTML = `<i data-lucide="save" class="w-5 h-5"></i> <span>SIMPAN & LANJUTKAN</span>`;
-            lucide.createIcons();
-        }
-
-
-        // Fungsi untuk update info dokter (Rawat Jalan)
+                .input-field:focus {
+                    border-color: #2563eb;
+                    outline: none;
+                    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+                }
+                .service-card {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                    padding: 24px;
+                    background-color: white;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    transition: all 0.3s;
+                    border: 1px solid #e5e7eb;
+                }
+                .service-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+                    background-color: #2563eb;
+                    color: white;
+                }
+                .service-card:hover h3, .service-card:hover p {
+                    color: white;
+                }
+                .nav-item {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 4px 8px;
+                    color: #9ca3af; /* Default gray */
+                    transition: color 0.2s;
+                }
+                .nav-item.active {
+                    color: #2563eb; /* Blue for active */
+                }
+            </style>
+        `);
+        
+        // --- Form & Doctor Logic ---
+        
+        // Fungsi untuk mengupdate info dokter Rawat Jalan
         function updateDoctorSchedule(poli) {
-            const infoDiv = document.getElementById('doctor-schedule-info');
-            const doctorP = document.getElementById('doctor-info');
-            const today = getCurrentDayName();
+            const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const today = dayNames[new Date().getDay()];
             
-            if (!poli) {
-                infoDiv.classList.add('hidden');
-                return;
-            }
+            document.getElementById('current-day').textContent = today;
+            const doctorInfoDiv = document.getElementById('doctor-info');
+            const doctorScheduleP = document.getElementById('doctor-schedule');
 
-            const scheduleToday = DOCTOR_SCHEDULE[today];
-            if (scheduleToday && scheduleToday[poli]) {
-                infoDiv.classList.remove('hidden');
-                infoDiv.classList.remove('bg-red-50', 'border-red-200');
-                infoDiv.classList.add('bg-yellow-50', 'border-yellow-200');
-                doctorP.innerHTML = `Poliklinik ${poli}: <span class="font-bold">${scheduleToday[poli]}</span>`;
+            if (poli && SCHEDULE[poli]) {
+                const schedule = SCHEDULE[poli][today] || 'Tidak Ada Jadwal';
+                doctorScheduleP.textContent = schedule;
+                doctorInfoDiv.classList.remove('hidden');
             } else {
-                // Kasus Poliklinik tidak ada jadwal di hari ini (misalnya Penyakit Dalam di Sabtu)
-                infoDiv.classList.remove('hidden');
-                infoDiv.classList.remove('bg-yellow-50', 'border-yellow-200');
-                infoDiv.classList.add('bg-red-50', 'border-red-200');
-                doctorP.innerHTML = `Poliklinik ${poli}: <span class="font-bold text-red-700">TIDAK ADA JADWAL HARI INI (${today})</span>`;
+                doctorScheduleP.textContent = '';
+                doctorInfoDiv.classList.add('hidden');
             }
         }
 
-        // --- SUBMISSION HANDLER (DENGAN AUTO TELEGRAM) ---
-
-        async function handleSubmit(event, formType) {
-            event.preventDefault();
+        // Fungsi untuk membuka form berdasarkan jenis layanan
+        function openForm(type, title) {
+            currentServiceType = type;
+            document.getElementById('form-title').textContent = title;
+            document.getElementById('form-content').innerHTML = FORM_TEMPLATES[type];
+            openModal('form-modal');
             
-            // Verifikasi KTP sudah diupload
-            if (!KTP_DATA_URL) {
-                alertUser('Mohon upload foto KTP Anda terlebih dahulu dan tekan SIMPAN di Editor Gambar.', 'error');
-                return false;
+            // Re-render lucide icons inside the modal
+            lucide.createIcons();
+
+            // Khusus Rawat Jalan: Tampilkan jadwal dokter hari ini saat form dimuat (jika ada poli yang terpilih)
+            if (type === 'rawat-jalan') {
+                const poliSelect = document.getElementById('poli-select');
+                if (poliSelect.value) {
+                    updateDoctorSchedule(poliSelect.value);
+                }
             }
+        }
+        
+        // Fungsi untuk mengisi tabel jadwal dokter
+        function populateScheduleTable() {
+            const tbody = document.getElementById('schedule-table-body');
+            tbody.innerHTML = '';
+            
+            const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+            const polis = ['Anak', 'Penyakit Dalam', 'Bedah', 'Obgyn', 'KIA/KB', 'Mata'];
+            
+            days.forEach(day => {
+                const row = document.createElement('tr');
+                // Highlight hari ini
+                const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const today = dayNames[new Date().getDay()];
+                const rowClass = day === today ? 'bg-blue-50 font-bold' : 'hover:bg-gray-50';
 
-            const submitButton = document.getElementById('submit-button');
-            const submitText = document.getElementById('submit-text');
-            const submitLoader = document.getElementById('submit-loader');
+                row.className = rowClass;
+                
+                // Cell Hari
+                row.innerHTML += `<td class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 sticky left-0 ${day === today ? 'bg-blue-100' : 'bg-white'}">${day}</td>`;
 
-            // Tampilkan loading, nonaktifkan tombol
-            submitText.textContent = 'Memproses & Mengirim...';
-            submitLoader.classList.remove('hidden');
-            submitButton.disabled = true;
+                polis.forEach(poli => {
+                    const scheduleText = SCHEDULE[poli] ? (SCHEDULE[poli][day] || 'TUTUP') : 'TUTUP';
+                    const cellClass = scheduleText === 'TUTUP' ? 'text-red-500 font-medium' : 'text-gray-700';
+                    
+                    row.innerHTML += `<td class="px-3 py-3 whitespace-pre-wrap text-sm ${cellClass}">${scheduleText}</td>`;
+                });
+                
+                tbody.appendChild(row);
+            });
+        }
 
-            const form = event.target;
-            const formData = new FormData(form);
-            const data = {
-                formType: formType,
-                kode_daftar: generateRegistrationCode(),
-                waktu_pendaftaran: new Date().toLocaleString('id-ID', {
-                    year: 'numeric', month: 'long', day: 'numeric', 
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                })
+
+        // --- Canvas & Telegram Logic ---
+
+        // Fungsi untuk menggambar Bukti Pendaftaran di Canvas
+        function drawRegistrationProof(data) {
+            const canvas = document.getElementById('registration-proof-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const w = 800;
+            const h = 1100;
+            canvas.width = w;
+            canvas.height = h;
+
+            // 1. Background dan Header
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, w, h);
+            
+            ctx.fillStyle = '#1e40af'; // Blue-700
+            ctx.fillRect(0, 0, w, 100);
+
+            // Teks Header
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 36px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('BUKTI PENDAFTARAN ONLINE', w / 2, 40);
+            ctx.font = '24px Inter';
+            ctx.fillText('RSUD Talaud - SI-Sehat', w / 2, 75);
+
+            // 2. Data Pendaftaran
+            let yOffset = 150;
+            ctx.fillStyle = '#1f2937'; // Gray-800
+            ctx.textAlign = 'left';
+
+            // Judul Layanan
+            // SAFE CHECK: Pastikan data['Service Type'] ada sebelum memanggil toUpperCase()
+            const serviceType = data['Service Type'] || 'LAYANAN TIDAK DIKETAHUI';
+            ctx.font = 'bold 30px Inter';
+            ctx.fillText(serviceType.toUpperCase(), 50, yOffset);
+            yOffset += 50;
+
+            // Kode Pendaftaran
+            ctx.font = '20px Inter';
+            ctx.fillText('KODE PENDAFTARAN:', 50, yOffset);
+            ctx.fillStyle = '#ef4444'; // Red-500
+            ctx.font = 'bold 36px Inter';
+            ctx.fillText(data['Kode Daftar'], 350, yOffset);
+            yOffset += 40;
+            
+            // Garis Pemisah
+            ctx.strokeStyle = '#9ca3af'; // Gray-400
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(50, yOffset);
+            ctx.lineTo(w - 50, yOffset);
+            ctx.stroke();
+            yOffset += 30;
+
+            // Detail Data
+            ctx.fillStyle = '#1f2937';
+            ctx.font = '18px Inter';
+            let i = 0;
+            for (const key in data) {
+                // Skip internal keys and KTP photo data
+                if (key === 'Kode Daftar' || key === 'Service Type' || key === 'KTP Photo' || key === 'Tgl Pendaftaran' || key === 'Waktu Pendaftaran') continue;
+
+                // Label
+                ctx.font = 'bold 18px Inter';
+                ctx.fillText(`${key}:`, 50, yOffset);
+
+                // Value
+                ctx.font = '18px Inter';
+                // Jika Rawat Jalan, tampilkan juga info dokter
+                let value = data[key];
+                if (key === 'Poliklinik' && data['Doctor Info']) {
+                     value += ` (Dokter Hari Ini: ${data['Doctor Info']})`;
+                }
+                ctx.fillText(value, 350, yOffset);
+                yOffset += 35;
+                i++;
+            }
+            
+            // Tanggal dan Waktu Pendaftaran
+            ctx.font = 'bold 18px Inter';
+            ctx.fillText('Tgl Pendaftaran:', 50, yOffset);
+            ctx.font = '18px Inter';
+            ctx.fillText(data['Tgl Pendaftaran'], 350, yOffset);
+            yOffset += 35;
+
+            ctx.font = 'bold 18px Inter';
+            ctx.fillText('Waktu Pendaftaran:', 50, yOffset);
+            ctx.font = '18px Inter';
+            ctx.fillText(data['Waktu Pendaftaran'], 350, yOffset);
+            yOffset += 50;
+
+            // 3. Foto KTP
+            const ktpImg = new Image();
+            ktpImg.onload = function() {
+                const ktpWidth = 300;
+                const ktpHeight = 200;
+                const ktpX = w - ktpWidth - 50; // Kanan bawah
+                const ktpY = h - ktpHeight - 50;
+
+                // Frame
+                ctx.strokeStyle = '#2563eb';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(ktpX - 2, ktpY - 2, ktpWidth + 4, ktpHeight + 4);
+                
+                // Gambar KTP
+                ctx.drawImage(ktpImg, ktpX, ktpY, ktpWidth, ktpHeight);
+                
+                ctx.font = 'bold 16px Inter';
+                ctx.fillStyle = '#1f2937';
+                ctx.textAlign = 'center';
+                ctx.fillText('Foto KTP', ktpX + ktpWidth / 2, ktpY - 10);
+                
+                // 4. Catatan Penting
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#4b5563'; // Gray-600
+                ctx.font = 'italic 14px Inter';
+                ctx.fillText('* Harap tunjukkan bukti ini saat verifikasi di RSUD Talaud.', 50, h - 30);
+                
+                // Lanjutkan ke pengiriman setelah gambar KTP dimuat
+                sendToTelegram(data);
             };
 
-            // Kumpulkan semua data form
-            formData.forEach((value, key) => {
-                // Khusus Rawat Jalan, tambahkan info dokter saat ini
-                if (key === 'poliklinik' && formType === 'rawat_jalan') {
-                    const today = getCurrentDayName();
-                    const doctor = DOCTOR_SCHEDULE[today] ? DOCTOR_SCHEDULE[today][value] : 'Tidak ada jadwal';
-                    data['dokter_bertugas'] = doctor;
-                    data['hari_kunjungan'] = today;
-                }
-                
-                // Lewati KTP file, karena sudah disimpan di KTP_DATA_URL
-                if (key !== 'ktp_photo') {
-                    data[key] = value;
-                }
-            });
-
-            // Tambahkan nama layanan lengkap
-            if (formType === 'rawat_jalan') {
-                data.layanan_lengkap = 'Pendaftaran Rawat Jalan';
-            } else if (formType === 'skbs') {
-                data.layanan_lengkap = 'Pendaftaran Surat Keterangan Berbadan Sehat (SKBS)';
-            } else if (formType === 'skbn') {
-                data.layanan_lengkap = 'Pendaftaran Surat Keterangan Bebas Narkoba (SKBN)';
-            } else if (formType === 'skbs_skbn_gabungan') {
-                data.layanan_lengkap = 'Pendaftaran SKBS & SKBN (2 Surat Sekaligus)';
-            }
-
-            REGISTRATION_DATA = data;
-            
-            // 1. Tutup Main Popup
-            closeMainPopup();
-            
-            // 2. Kirim data ke Telegram (Async)
-            let telegramSuccess = false;
-            try {
-                await sendToTelegram(data);
-                telegramSuccess = true;
-            } catch (error) {
-                console.error('Auto Telegram Gagal:', error);
-                // Lanjutkan proses meskipun Telegram gagal, tapi beri notifikasi
-            }
-
-            // 3. Tampilkan Result Popup
-            showResultPopup(data, telegramSuccess);
-                
-            // 4. Reset tombol (meski popup utama sudah ditutup, untuk jaga-jaga)
-            submitText.textContent = 'DAFTAR SEKARANG';
-            submitLoader.classList.add('hidden');
-            submitButton.disabled = false;
-            
-            return false;
-        }
-
-        function showResultPopup(data, telegramSuccess) {
-            const overlay = document.getElementById('result-popup-overlay');
-            const detailsDiv = document.getElementById('result-popup-details');
-            const telegramStatusDiv = document.getElementById('telegram-status');
-            const downloadButton = document.getElementById('download-button');
-
-            // Format data untuk ringkasan di Result-Popup
-            let htmlSummary = `<p class="font-bold text-lg mb-2">${data.layanan_lengkap}</p>`;
-            htmlSummary += `<p class="text-xl font-extrabold text-teal-800 break-words">Kode Daftar: ${data.kode_daftar}</p><hr class="my-3 border-teal-300">`;
-            htmlSummary += `<p><span class="font-semibold">Nama:</span> ${data.nama}</p>`;
-            htmlSummary += `<p><span class="font-semibold">Waktu Daftar:</span> ${data.waktu_pendaftaran}</p>`;
-            
-            // Detail spesifik layanan
-            if (data.formType === 'rawat_jalan') {
-                htmlSummary += `<p><span class="font-semibold">Poliklinik:</span> ${data.poliklinik}</p>`;
-                htmlSummary += `<p><span class="font-semibold">Dokter (${data.hari_kunjungan}):</span> ${data.dokter_bertugas}</p>`;
-            } else if (data.formType === 'skbs') {
-                htmlSummary += `<p><span class="font-semibold">Tujuan SKBS:</span> ${data.tujuan_surat_skbs}</p>`;
-            } else if (data.formType === 'skbn') {
-                htmlSummary += `<p><span class="font-semibold">Tujuan SKBN:</span> ${data.tujuan_surat_skbn}</p>`;
-            } else if (data.formType === 'skbs_skbn_gabungan') {
-                htmlSummary += `<p><span class="font-semibold">Tujuan SKBS:</span> ${data.tujuan_surat_skbs}</p>`;
-                htmlSummary += `<p><span class="font-semibold">Tujuan SKBN:</span> ${data.tujuan_surat_skbn}</p>`;
-            }
-
-            detailsDiv.innerHTML = htmlSummary;
-            
-            // Update Status Telegram
-            if (telegramSuccess) {
-                telegramStatusDiv.classList.remove('hidden', 'bg-red-100', 'border-red-300');
-                telegramStatusDiv.classList.add('bg-green-100', 'border-green-300');
-                telegramStatusDiv.innerHTML = `<i data-lucide="send" class="w-5 h-5 text-green-700"></i><span class="text-green-800">Data telah *otomatis* dikirim ke Telegram Petugas.</span>`;
-                alertUser('Pendaftaran sukses dan data otomatis terkirim ke Telegram.', 'success');
+            // Jika KTP ada, muat gambarnya
+            if (data['KTP Photo']) {
+                ktpImg.src = data['KTP Photo'];
             } else {
-                 telegramStatusDiv.classList.remove('hidden', 'bg-green-100', 'border-green-300');
-                 telegramStatusDiv.classList.add('bg-red-100', 'border-red-300');
-                telegramStatusDiv.innerHTML = `<i data-lucide="alert-triangle" class="w-5 h-5 text-red-700"></i><span class="text-red-800">Gagal otomatis kirim ke Telegram. Mohon informasikan kode daftar ini ke Petugas.</span>`;
-                alertUser('Pendaftaran sukses, namun gagal mengirim otomatis ke Telegram. Mohon beritahu petugas.', 'error');
-            }
-
-
-            // Pasang event listener untuk download
-            downloadButton.onclick = () => downloadProofImage(data);
-            
-            overlay.classList.add('open');
-            lucide.createIcons(); // Pastikan ikon Result-Popup terload
-        }
-        
-        function closeResultPopup(event) {
-            if (event && event.target !== document.getElementById('result-popup-overlay')) return;
-            document.getElementById('result-popup-overlay').classList.remove('open');
-        }
-
-        // --- CANVAS PROOF GENERATION ---
-
-        async function generateProofImage(data) {
-            const canvas = document.getElementById('proof-canvas');
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-
-            // 1. Bersihkan Canvas
-            ctx.fillStyle = '#f7f9fb';
-            ctx.fillRect(0, 0, width, height);
-            
-            // 2. Tambahkan Logo Placeholder (Simulasi)
-            ctx.fillStyle = '#047857';
-            ctx.font = 'bold 30px Inter, sans-serif';
-            ctx.fillText('SI-Sehat', 30, 60);
-            ctx.font = '18px Inter, sans-serif';
-            ctx.fillText('RSUD Talaud', 30, 85);
-
-            // Garis pembatas
-            ctx.strokeStyle = '#047857';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(30, 110);
-            ctx.lineTo(width - 30, 110);
-            ctx.stroke();
-
-            // 3. Judul Bukti Pendaftaran
-            ctx.fillStyle = '#1f2937';
-            ctx.font = 'bold 24px Inter, sans-serif';
-            ctx.fillText('BUKTI PENDAFTARAN ONLINE', 30, 150);
-
-            // 4. Kode Pendaftaran
-            ctx.fillStyle = '#ef4444'; // Warna merah untuk kode
-            ctx.font = 'bold 36px Inter, sans-serif';
-            ctx.fillText(data.kode_daftar, 30, 200);
-
-            // 5. Data Pendaftaran (Teks)
-            ctx.fillStyle = '#4b5563';
-            ctx.font = '16px Inter, sans-serif';
-            let y = 240;
-            const lineHeight = 25;
-
-            // Data yang akan ditampilkan di Canvas
-            const displayData = [
-                { label: 'Layanan', value: data.layanan_lengkap },
-                { label: 'Nama Lengkap', value: data.nama },
-                { label: 'Waktu Daftar', value: data.waktu_pendaftaran },
-                { label: 'NIK', value: data.nik || '-' },
-                { label: 'No. HP', value: data.no_hp || '-' },
-                { label: 'Jenis Kelamin', value: data.jenis_kelamin || '-' },
-                { label: 'Alamat', value: data.alamat || '-' },
-                { label: 'Pekerjaan', value: data.pekerjaan || '-' },
-            ];
-
-            // Data spesifik layanan
-            if (data.formType === 'rawat_jalan') {
-                displayData.push(
-                    { label: 'Poliklinik', value: data.poliklinik },
-                    { label: `Dokter (${data.hari_kunjungan})`, value: data.dokter_bertugas }
-                );
-            } else if (data.formType === 'skbs' || data.formType === 'skbs_skbn_gabungan') {
-                 displayData.push(
-                    { label: 'Tinggi Badan', value: data.tinggi_badan + ' cm' },
-                    { label: 'Berat Badan', value: data.berat_badan + ' kg' },
-                    { label: 'Tujuan SKBS', value: data.tujuan_surat_skbs }
-                );
-            }
-             if (data.formType === 'skbn' || data.formType === 'skbs_skbn_gabungan') {
-                displayData.push(
-                    { label: 'Tujuan SKBN', value: data.tujuan_surat_skbn }
-                );
-            }
-
-            // Gambar data di Canvas
-            displayData.forEach(item => {
-                ctx.fillText(`${item.label}:`, 30, y);
-                // Wrap text for long values like Alamat
-                const wrappedText = wrapText(ctx, item.value, width - 200, 180); 
-                wrappedText.forEach((line, i) => {
-                    ctx.fillText(line, 160, y + i * 20); // 160 adalah offset untuk nilai
-                });
-                y += lineHeight * wrappedText.length;
-            });
-            
-            // 6. Tempat KTP di Kanan (Async operation)
-            const ktpImg = new Image();
-            ktpImg.crossOrigin = 'anonymous'; 
-            
-            return new Promise((resolve, reject) => {
-                const drawKtpAndResolve = (image) => {
-                    const ktpX = width - 180;
-                    const ktpY = 130;
-                    const ktpWidth = 150;
-                    const ktpHeight = 90; // Proporsi 5:3 untuk KTP (150/90 = 1.66)
-                    
-                    // Box KTP
-                    ctx.strokeStyle = '#9ca3af';
-                    ctx.lineWidth = 1;
-                    ctx.strokeRect(ktpX - 1, ktpY - 1, ktpWidth + 2, ktpHeight + 2);
-
-                    if (image) {
-                         // Gambar KTP jika berhasil dimuat
-                        ctx.drawImage(image, ktpX, ktpY, ktpWidth, ktpHeight);
-                    } else {
-                        // Gambar placeholder jika gagal/error
-                        ctx.fillStyle = '#dc2626';
-                        ctx.font = 'bold 12px Inter, sans-serif';
-                        ctx.fillText('Foto KTP Gagal Dimuat', ktpX + 15, ktpY + 45);
-                    }
-                    
-                    // Pesan Penting
-                    ctx.fillStyle = '#1f2937';
-                    ctx.font = 'bold 14px Inter, sans-serif';
-                    ctx.fillText('CATATAN PENTING:', 30, height - 100);
-                    ctx.font = '12px Inter, sans-serif';
-                    ctx.fillText('Tunjukkan bukti ini kepada petugas di loket pendaftaran.', 30, height - 80);
-                    ctx.fillText('Jangan Lupa Bawa KTP Asli!', 30, height - 60);
-
-                    resolve(canvas.toDataURL('image/png'));
-                };
-
-
-                ktpImg.onload = () => {
-                    drawKtpAndResolve(ktpImg);
-                };
+                // Gambar KTP Placeholder
+                ctx.fillStyle = '#f3f4f6'; // Gray-100
+                ctx.fillRect(w - 350, h - 250, 300, 200);
+                ctx.fillStyle = '#6b7280'; // Gray-500
+                ctx.font = 'bold 20px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('KTP TIDAK ADA', w - 200, h - 150);
                 
-                ktpImg.onerror = () => {
-                    console.error('Gagal memuat KTP dari Data URL.');
-                    drawKtpAndResolve(null); // Resolve dengan placeholder
-                };
-                
-                // Set source dari data URL yang sudah disimpan
-                if (KTP_DATA_URL) {
-                    ktpImg.src = KTP_DATA_URL;
-                } else {
-                    ktpImg.onerror();
-                }
-            });
-        }
-        
-        // Fungsi pembantu untuk membungkus teks panjang (Alamat)
-        function wrapText(context, text, maxWidth, x) {
-            const words = text.split(' ');
-            let line = '';
-            const lines = [];
-
-            for (let i = 0; i < words.length; i++) {
-                const testLine = line + words[i] + ' ';
-                const metrics = context.measureText(testLine);
-                const testWidth = metrics.width;
-                if (testWidth > maxWidth && i > 0) {
-                    lines.push(line.trim());
-                    line = words[i] + ' ';
-                } else {
-                    line = testLine;
-                }
-            }
-            lines.push(line.trim());
-            return lines;
-        }
-
-
-        // --- DOWNLOAD & TELEGRAM LOGIC ---
-        
-        async function downloadProofImage(data) {
-            const downloadButton = document.getElementById('download-button');
-            downloadButton.disabled = true;
-            downloadButton.innerHTML = `<div class="loader"></div> <span>Membuat Gambar...</span>`;
-
-            try {
-                const dataURL = await generateProofImage(data);
-                
-                const link = document.createElement('a');
-                link.download = `Bukti_Daftar_${data.kode_daftar}.png`;
-                link.href = dataURL;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                alertUser('Bukti pendaftaran berhasil diunduh.', 'success');
-            } catch (error) {
-                console.error('Download Gagal:', error);
-                alertUser('Gagal mengunduh bukti pendaftaran.', 'error');
-            } finally {
-                downloadButton.disabled = false;
-                downloadButton.innerHTML = `<i data-lucide="download" class="w-5 h-5"></i><span>UNDUH Bukti Pendaftaran (Gambar)</span>`;
-                lucide.createIcons();
+                // Lanjutkan ke pengiriman tanpa menunggu load KTP
+                sendToTelegram(data);
             }
         }
 
-
+        // Fungsi untuk mengirim gambar Canvas ke Telegram
         async function sendToTelegram(data) {
-            // TIDAK ADA status loading di UI karena ini berjalan di background sebelum showResultPopup
+            const button = document.getElementById('submit-button');
+            const loading = document.getElementById('loading-message');
             
-            // 1. Generate Canvas Image as Blob
-            const dataURL = await generateProofImage(data);
-            const blob = await (await fetch(dataURL)).blob();
-
             // Tentukan konfigurasi bot
-            const configKey = data.formType === 'rawat_jalan' ? 'Rawat Jalan' : 'Surat Keterangan';
+            const isRawatJalan = data['Service Type'].includes('Rawat Jalan');
+            const configKey = isRawatJalan ? 'rawat-jalan' : 'skbs-skbn';
             const config = TELEGRAM_CONFIG[configKey];
+
+            const canvas = document.getElementById('registration-proof-canvas');
+            const imageBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
             
-            if (!config) {
-                throw new Error('Konfigurasi Telegram tidak ditemukan.');
-            }
-                
-            // 2. Prepare FormData for sendPhoto
-            const apiUrl = `https://api.telegram.org/bot${config.token}/sendPhoto`;
             const formData = new FormData();
             formData.append('chat_id', config.chatId);
-            formData.append('photo', blob, 'bukti_pendaftaran.png');
-            formData.append('caption', `*Pendaftaran Baru: ${data.layanan_lengkap}*\nKode: \`${data.kode_daftar}\`\nNama: ${data.nama}\nWaktu: ${data.waktu_pendaftaran}\n\n*Bukti pendaftaran berupa gambar telah terlampir.*`);
-            formData.append('parse_mode', 'Markdown');
-            
-            // 3. Kirim ke Telegram API
-            const response = await fetchWithRetry(apiUrl, {
-                method: 'POST',
-                body: formData,
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`Telegram API Error: ${errorData.description || response.statusText}`);
-            }
-            
-            // Berhasil mengirim
-            return true;
-        }
-        
-        // Fungsi Fetch dengan Retry (untuk mengatasi masalah jaringan/throttling kecil)
-        async function fetchWithRetry(url, options, maxRetries = 3) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (response.status !== 429) { // 429 Too Many Requests
-                        return response;
-                    }
-                } catch (error) {
-                    // Coba lagi jika ada error jaringan
-                    if (i === maxRetries - 1) throw error;
-                }
-                // Backoff: (1s, 2s, 4s)
-                const delay = Math.pow(2, i) * 1000;
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
-            throw new Error('Gagal mengirim setelah beberapa kali percobaan.');
-        }
+            formData.append('photo', imageBlob, 'bukti_pendaftaran.png');
 
-        // --- SCHEDULE POPUP LOGIC ---
-        
-        function openSchedulePopup() {
-            renderFullScheduleTable();
-            document.getElementById('schedule-popup-overlay').classList.add('open');
-            lucide.createIcons();
-        }
+            const telegramUrl = `https://api.telegram.org/bot${config.token}/sendPhoto`;
 
-        function closeSchedulePopup(event) {
-            if (event && event.target !== document.getElementById('schedule-popup-overlay')) return;
-            document.getElementById('schedule-popup-overlay').classList.remove('open');
-        }
-
-        function renderFullScheduleTable() {
-            const container = document.getElementById('full-schedule-view') || document.getElementById('schedule-table-container');
-            if (!container) return;
-            
-            const days = Object.keys(DOCTOR_SCHEDULE);
-            const polikliniks = ['Poli Anak', 'Penyakit Dalam', 'Bedah', 'Obgyn', 'KIA/KB', 'Mata'];
-            
-            // Generate header
-            let tableHTML = `
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-teal-600 text-white">
-                            <tr>
-                                <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider sticky left-0 bg-teal-600">Hari</th>
-                                ${polikliniks.map(poli => `<th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">${poli}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200 text-gray-700">
-            `;
-            
-            // Generate rows
-            days.forEach(day => {
-                const isToday = day === getCurrentDayName();
-                const rowClass = isToday ? 'bg-yellow-100 font-semibold' : 'hover:bg-gray-50';
-                tableHTML += `<tr class="${rowClass}">`;
-                tableHTML += `<td class="px-3 py-4 whitespace-nowrap text-sm sticky left-0 ${isToday ? 'bg-yellow-200' : 'bg-white'} font-bold">${day}</td>`;
-                
-                polikliniks.forEach(poli => {
-                    const schedule = DOCTOR_SCHEDULE[day][poli] || '<span class="text-red-500">LIBUR / TIDAK ADA</span>';
-                    tableHTML += `<td class="px-3 py-4 whitespace-normal text-sm">${schedule}</td>`;
+            try {
+                const response = await fetch(telegramUrl, {
+                    method: 'POST',
+                    body: formData,
                 });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(`Telegram API Error: ${error.description || response.statusText}`);
+                }
+                
+                console.log('Bukti pendaftaran berhasil dikirim ke Telegram.');
+                
+            } catch (error) {
+                console.error('Gagal mengirim ke Telegram:', error);
+                // Tampilkan pesan error custom (bukan alert)
+                const popup = document.getElementById('super-popup');
+                popup.querySelector('h2.text-xl').textContent = 'Pendaftaran Berhasil, Tapi Pengiriman Bukti Gagal!';
+                popup.querySelector('.text-gray-700').textContent = 'Harap simpan bukti pendaftaran Anda. Terjadi masalah saat mengirim ke Telegram. Kesalahan: ' + error.message.substring(0, 50) + '...';
+            } finally {
+                // Tampilkan Super-Popup setelah semua proses selesai (termasuk Telegram, sukses/gagal)
+                button.classList.remove('hidden');
+                loading.classList.add('hidden');
+                openModal('super-popup');
+            }
+        }
 
-                tableHTML += `</tr>`;
+        // Fungsi untuk Download Bukti
+        function downloadProof() {
+            const canvas = document.getElementById('registration-proof-canvas');
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = `Bukti_Pendaftaran_${registrationData['Kode Daftar']}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // --- Form Submission Handler ---
+
+        document.getElementById('registration-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // 1. Validasi KTP
+            if (!ktpBase64Image) {
+                // Ganti alert() dengan pesan di bawah tombol
+                document.getElementById('loading-message').textContent = 'Kesalahan: Foto KTP wajib diupload.';
+                document.getElementById('loading-message').classList.remove('hidden', 'text-blue-500');
+                document.getElementById('loading-message').classList.add('text-red-500');
+                setTimeout(() => {
+                    document.getElementById('loading-message').classList.add('hidden');
+                    document.getElementById('loading-message').classList.remove('text-red-500');
+                    document.getElementById('loading-message').classList.add('text-blue-500');
+                    document.getElementById('loading-message').innerHTML = '<i data-lucide="loader-circle" class="w-4 h-4 mr-1 inline animate-spin"></i> Sedang memproses dan mengirim bukti ke Telegram...';
+                }, 3000);
+                return;
+            }
+
+            // 2. Tampilkan loading dan sembunyikan tombol submit
+            const button = document.getElementById('submit-button');
+            const loading = document.getElementById('loading-message');
+            button.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            // 3. Kumpulkan Data (Bagian ini diperbaiki)
+            const form = event.target;
+            const data = {};
+            const formData = new FormData(form);
+
+            formData.forEach((value, key) => {
+                // Skip file upload input as it's handled separately
+                if (key === 'ktp-upload') return;
+
+                // Fix: Map 'service-type' (from hidden input) to 'Service Type' (used everywhere else)
+                let dataKey = key;
+                if (key === 'service-type') {
+                    dataKey = 'Service Type';
+                }
+
+                // Check if the element is disabled, and skip if it's not a hidden field
+                // This ensures 'Buat SKBS/SKBN' (disabled) tidak terkirim dua kali,
+                // tapi 'service-type' (hidden) tetap terkirim.
+                const element = form.elements[key];
+                const isDisabled = element && element.disabled && element.type !== 'hidden';
+
+                if (!isDisabled) {
+                    data[dataKey] = value;
+                }
             });
-
-            tableHTML += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
+            // 4. Tambahkan Data Tambahan
+            data['Kode Daftar'] = generateRegistrationCode();
+            data['KTP Photo'] = ktpBase64Image;
             
-            container.innerHTML = tableHTML;
-        }
-
-        // --- ALERT MESSAGE (Pengganti alert()) ---
-        // Menampilkan pesan notifikasi di layar
-        function alertUser(message, type) {
-            const popupOverlay = document.getElementById('result-popup-overlay');
-            // Jika result-popup terbuka, tampilkan pesan di dalamnya, jika tidak, di body
-            const container = popupOverlay.classList.contains('open') ? document.getElementById('result-popup-content') : document.body;
-
-            const existingAlert = document.getElementById('user-alert');
-            if (existingAlert) existingAlert.remove();
-
-            const alertDiv = document.createElement('div');
-            alertDiv.id = 'user-alert';
-            let bgColor, borderColor, icon;
-
-            if (type === 'success') {
-                bgColor = 'bg-green-500';
-                borderColor = 'border-green-700';
-                icon = 'check-circle';
-            } else {
-                bgColor = 'bg-red-500';
-                borderColor = 'border-red-700';
-                icon = 'alert-triangle';
+            const now = new Date();
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZoneName: 'short' };
+            data['Tgl Pendaftaran'] = now.toLocaleDateString('id-ID', dateOptions);
+            data['Waktu Pendaftaran'] = now.toLocaleTimeString('id-ID', timeOptions);
+            
+            // Tambahkan info dokter untuk Rawat Jalan
+            if (currentServiceType === 'rawat-jalan') {
+                const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const today = dayNames[now.getDay()];
+                const poli = data['Poliklinik'];
+                if (poli && SCHEDULE[poli]) {
+                    data['Doctor Info'] = SCHEDULE[poli][today] || 'Tidak Ada Jadwal';
+                }
             }
 
-            alertDiv.className = `fixed bottom-24 right-4 z-[2000] p-4 rounded-xl text-white shadow-xl flex items-center space-x-3 transition-opacity duration-300 ${bgColor} border-b-4 ${borderColor}`;
-            alertDiv.innerHTML = `
-                <i data-lucide="${icon}" class="w-5 h-5"></i>
-                <p class="text-sm font-medium">${message}</p>
-            `;
-            
-            // Jika di body, tampilkan di kanan bawah (di atas bottom nav)
-            if (container === document.body) {
-                document.body.appendChild(alertDiv);
-            } else {
-                // Jika di dalam result-popup, tambahkan di bagian atas
-                container.prepend(alertDiv);
-            }
+            registrationData = data; // Simpan data global untuk download
 
-            // Inisialisasi ikon
-            lucide.createIcons();
-            
-            // Hilangkan alert setelah 5 detik
-            setTimeout(() => {
-                alertDiv.classList.add('opacity-0');
-                setTimeout(() => alertDiv.remove(), 300);
-            }, 5000);
-        }
+            // 5. Isi Super-Popup Ringkasan
+            document.getElementById('super-popup-code').textContent = data['Kode Daftar'];
+            document.getElementById('super-popup-summary').innerHTML = formatSummary(data);
 
+            // 6. Tutup Form Modal
+            closeModal(document.getElementById('form-modal'));
 
-        // --- INITIALIZATION ---
+            // 7. Gambar Bukti dan Kirim ke Telegram (Chain starts here)
+            // drawRegistrationProof akan memicu sendToTelegram setelah gambar KTP di load
+            drawRegistrationProof(data);
+        });
+
+        // Panggil untuk menginisiasi icons
         window.onload = function() {
-            // Tampilkan halaman Beranda saat pertama kali dimuat
-            changePage('beranda'); 
+            lucide.createIcons();
         };
+
     </script>
 </body>
 </html>
