@@ -18,7 +18,7 @@
         }
 
         /* Styling untuk popup */
-        .popup-overlay, .super-popup-overlay {
+        .popup-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -34,12 +34,12 @@
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
-        .popup-overlay.open, .super-popup-overlay.open {
+        .popup-overlay.open {
             opacity: 1;
             visibility: visible;
         }
 
-        .popup-content, .super-popup-content {
+        .popup-content {
             background-color: white;
             border-radius: 1.5rem;
             max-height: 90vh;
@@ -51,10 +51,20 @@
             max-width: 600px;
         }
 
-        .popup-overlay.open .popup-content,
-        .super-popup-overlay.open .super-popup-content {
+        .popup-overlay.open .popup-content {
             transform: scale(1);
         }
+        
+        /* Khusus untuk canvas editor */
+        #editor-canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-width: 450px;
+            max-height: 450px;
+            object-fit: contain;
+        }
+
 
         /* Styling untuk bottom navigation */
         #bottom-nav {
@@ -126,31 +136,75 @@
         </div>
     </div>
 
-    <!-- 2. SUPER-POPUP (Ringkasan & Bukti) -->
-    <div id="super-popup-overlay" class="super-popup-overlay" onclick="closeSuperPopup(event)">
-        <div id="super-popup-content" class="super-popup-content !max-w-lg" onclick="event.stopPropagation()">
+    <!-- 2. IMAGE EDITOR POPUP (Rotate & Crop) -->
+    <div id="image-editor-popup-overlay" class="popup-overlay" onclick="closeImageEditor(event)">
+        <div id="image-editor-popup-content" class="popup-content !max-w-xl" onclick="event.stopPropagation()">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-2xl font-bold text-teal-700 flex items-center">
+                        <i data-lucide="crop" class="w-6 h-6 mr-2"></i>
+                        Edit Foto KTP
+                    </h2>
+                    <button onclick="closeImageEditor()" class="text-gray-400 hover:text-gray-600">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <p class="text-gray-600 mb-4 text-sm">Gunakan tombol putar (Rotate) jika foto KTP miring.</p>
+                
+                <!-- Area Editor Canvas -->
+                <div class="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-xl min-h-[300px]">
+                    <!-- Canvas temporer untuk editing -->
+                    <canvas id="editor-canvas" class="max-w-full border border-gray-300 rounded-lg hidden"></canvas>
+                    <p id="editor-loading" class="text-gray-500 mt-4 flex items-center space-x-2">
+                        <div class="loader mr-2"></div>
+                        <span>Memuat gambar...</span>
+                    </p>
+                </div>
+
+                <div class="flex justify-center space-x-4 mt-6">
+                    <button id="rotate-button" onclick="rotateImage()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-300 flex items-center space-x-2 disabled:bg-gray-400">
+                        <i data-lucide="rotate-cw" class="w-5 h-5"></i>
+                        <span>Putar 90°</span>
+                    </button>
+                </div>
+
+                <div class="mt-6 border-t pt-4">
+                    <button id="finalize-button" onclick="finalizeImage()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 flex items-center justify-center space-x-2 disabled:bg-gray-400">
+                        <i data-lucide="save" class="w-5 h-5"></i>
+                        <span>SIMPAN & LANJUTKAN</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 3. RESULT POPUP (Ringkasan & Bukti) -->
+    <div id="result-popup-overlay" class="popup-overlay" onclick="closeResultPopup(event)">
+        <div id="result-popup-content" class="popup-content !max-w-lg" onclick="event.stopPropagation()">
             <div class="p-6">
                 <h2 class="text-2xl font-bold text-teal-700 mb-4 flex items-center">
                     <i data-lucide="check-circle" class="w-6 h-6 mr-2"></i>
                     Pendaftaran Berhasil!
                 </h2>
-                <div id="super-popup-details" class="bg-teal-50 border border-teal-200 p-4 rounded-xl text-gray-800 mb-6 space-y-2">
+                <div id="result-popup-details" class="bg-teal-50 border border-teal-200 p-4 rounded-xl text-gray-800 mb-6 space-y-2">
                     <!-- Detail pendaftaran akan di-inject di sini -->
                 </div>
                 
                 <!-- Area Canvas untuk Bukti Pendaftaran (Hanya untuk logic JS) -->
                 <canvas id="proof-canvas" width="450" height="700" class="hidden"></canvas>
                 
+                <!-- Status Telegram -->
+                <div id="telegram-status" class="p-3 mb-4 rounded-xl text-sm font-medium flex items-center space-x-2 hidden">
+                    <!-- Status pengiriman akan di-inject di sini -->
+                </div>
+
                 <div class="space-y-4">
                     <button id="download-button" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 shadow-lg shadow-teal-500/50 flex items-center justify-center space-x-2">
                         <i data-lucide="download" class="w-5 h-5"></i>
                         <span>UNDUH Bukti Pendaftaran (Gambar)</span>
                     </button>
-                    <button id="telegram-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 shadow-lg shadow-blue-500/50 flex items-center justify-center space-x-2">
-                        <i data-lucide="send" class="w-5 h-5"></i>
-                        <span id="telegram-button-text">KIRIM Bukti ke Telegram Petugas</span>
-                    </button>
-                    <button onclick="closeSuperPopup()" class="w-full text-sm text-gray-500 hover:text-gray-700 mt-2 py-2">
+                    <button onclick="closeResultPopup()" class="w-full text-sm text-gray-500 hover:text-gray-700 mt-2 py-2">
                         Tutup
                     </button>
                 </div>
@@ -158,7 +212,7 @@
         </div>
     </div>
 
-    <!-- 3. POPUP JADWAL DOKTER -->
+    <!-- 4. POPUP JADWAL DOKTER -->
     <div id="schedule-popup-overlay" class="popup-overlay" onclick="closeSchedulePopup(event)">
         <div id="schedule-popup-content" class="popup-content !max-w-3xl" onclick="event.stopPropagation()">
             <div class="p-6">
@@ -175,7 +229,7 @@
         </div>
     </div>
 
-    <!-- 4. BOTTOM NAVIGATION (Menu Bawah) -->
+    <!-- 5. BOTTOM NAVIGATION (Menu Bawah) -->
     <nav id="bottom-nav" class="flex justify-around items-center h-20">
         <button onclick="changePage('beranda')" class="nav-item flex flex-col items-center justify-center p-2 text-teal-600">
             <i data-lucide="home" class="w-6 h-6"></i>
@@ -206,7 +260,7 @@
                 chatId: '-1003422565471'
             },
             'Surat Keterangan': { // Digunakan untuk SKBS, SKBN, dan Gabungan
-                token: '8576988803:AAGHxQ_PJ6SsSWRtcP3x8B7RVTliBvANhHk',
+                token: '8576988803:AAGHxQ_PJ5SsSWRtcP3x8B7RVTliBvANHk',
                 chatId: '-1003466725898'
             }
         };
@@ -266,8 +320,12 @@
         // Simpan data pendaftaran sementara
         let REGISTRATION_DATA = {};
         
-        // Simpan KTP Data URL sementara untuk Canvas
+        // Simpan KTP Data URL sementara untuk Canvas dan Telegram
         let KTP_DATA_URL = '';
+
+        // Variabel untuk Image Editor
+        let TEMP_IMAGE_DATA = null; 
+        let CURRENT_ROTATION = 0;
 
         // --- UTILITY FUNCTIONS ---
 
@@ -318,13 +376,10 @@
                         </div>
                     </div>
                     
-                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Layanan Pendaftaran</h3>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Informasi & Layanan Cepat</h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        ${renderServiceCard('Pendaftaran Rawat Jalan', 'hospital', 'Pendaftaran Rawat Jalan', 'Pendaftaran untuk konsultasi dan pemeriksaan di berbagai poliklinik.', 'rawat_jalan')}
-                        ${renderServiceCard('Pendaftaran SKBS', 'heart-handshake', 'Pendaftaran Surat Keterangan Berbadan Sehat', 'Dapatkan surat keterangan sehat untuk keperluan kerja atau sekolah.', 'skbs')}
-                        ${renderServiceCard('Pendaftaran SKBN', 'syringe', 'Pendaftaran Surat Keterangan Bebas Narkoba', 'Dapatkan surat bebas narkoba untuk melengkapi persyaratan administrasi.', 'skbn')}
-                        ${renderServiceCard('Pendaftaran SKBS/SKBN (Gabungan)', 'files', 'Pendaftaran SKBS/SKBN (2 Surat Sekaligus)', 'Layanan baru! Buat Surat Keterangan Sehat dan Bebas Narkoba dalam satu proses pendaftaran.', 'skbs_skbn_gabungan')}
+                        ${renderServiceCard('Pendaftaran Online', 'clipboard-list', 'Pilih Layanan Pendaftaran', 'Akses ke semua form pendaftaran Rawat Jalan dan Surat Keterangan.', 'pendaftaran')}
                         ${renderServiceCard('Jadwal Dokter', 'calendar', 'Lihat Jadwal Dokter Hari Ini', 'Informasi lengkap jadwal dokter spesialis yang bertugas.', 'jadwal_dokter')}
                     </div>
                 `;
@@ -400,7 +455,17 @@
         // Helper untuk membuat kartu layanan
         function renderServiceCard(title, icon, subtitle, description, type) {
             const isScheduleCard = type === 'jadwal_dokter';
-            const action = isScheduleCard ? `openSchedulePopup()` : `openFormPopup('${type}', '${title}')`;
+            const isPendaftaranPage = type === 'pendaftaran';
+            
+            let action;
+            if (isScheduleCard) {
+                action = `openSchedulePopup()`;
+            } else if (isPendaftaranPage) {
+                action = `changePage('pendaftaran')`;
+            } else {
+                action = `openFormPopup('${type}', '${title}')`;
+            }
+            
             return `
                 <div class="service-card bg-white p-6 rounded-xl shadow-lg cursor-pointer border-t-4 border-teal-500" onclick="${action}">
                     <div class="flex items-center space-x-4 mb-3">
@@ -418,6 +483,9 @@
             const popupOverlay = document.getElementById('main-popup-overlay');
             const popupContent = document.getElementById('main-popup-content');
             
+            // Clear KTP input dan preview saat buka form baru
+            KTP_DATA_URL = '';
+            
             popupContent.innerHTML = `
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-6">
@@ -429,19 +497,19 @@
                     <form id="registration-form" onsubmit="return handleSubmit(event, '${formType}')">
                         ${renderForm(formType)}
                         
-                        <!-- Form Universal: KTP Preview -->
+                        <!-- Form Universal: KTP Preview & UPLOAD -->
                         <div class="mt-6 border-t pt-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Upload Foto KTP <span class="text-red-500">*</span></label>
                             <input type="file" id="ktp_photo" name="ktp_photo" accept="image/*" required class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer" onchange="previewKtp()">
                             
                             <div class="mt-4 p-3 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50 flex justify-center items-center h-48">
                                 <img id="ktp-preview" class="hidden max-h-full max-w-full object-contain rounded" alt="Preview Foto KTP">
-                                <p id="ktp-placeholder" class="text-gray-400 text-sm">Preview Foto KTP Akan Tampil di Sini</p>
+                                <p id="ktp-placeholder" class="text-gray-400 text-sm">Preview Foto KTP Akan Tampil di Sini (Setelah Diedit)</p>
                             </div>
                         </div>
 
                         <div class="mt-8">
-                            <button type="submit" id="submit-button" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 flex items-center justify-center space-x-2">
+                            <button type="submit" id="submit-button" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 flex items-center justify-center space-x-2 disabled:bg-gray-400">
                                 <span id="submit-text">DAFTAR SEKARANG</span>
                                 <div id="submit-loader" class="loader hidden"></div>
                             </button>
@@ -461,6 +529,8 @@
             document.getElementById('main-popup-overlay').classList.remove('open');
             // Reset KTP data saat popup ditutup
             KTP_DATA_URL = '';
+            TEMP_IMAGE_DATA = null;
+            CURRENT_ROTATION = 0;
         }
 
         function openFormPopup(type, title) {
@@ -565,7 +635,8 @@
             `;
         }
         
-        // Fungsi untuk KTP Preview
+        // --- KTP IMAGE EDITOR LOGIC ---
+
         function previewKtp() {
             const fileInput = document.getElementById('ktp_photo');
             const preview = document.getElementById('ktp-preview');
@@ -575,11 +646,15 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    // 1. Tampilkan gambar yang dipilih di preview utama (sementara)
                     preview.src = e.target.result;
-                    KTP_DATA_URL = e.target.result; // Simpan Data URL
                     preview.classList.remove('hidden');
                     placeholder.classList.add('hidden');
+                    
+                    // 2. Buka editor untuk rotasi/crop
+                    openImageEditor(e.target.result);
                 }
+                // Baca file sebagai Data URL
                 reader.readAsDataURL(file);
             } else {
                 preview.src = '';
@@ -588,6 +663,159 @@
                 placeholder.classList.remove('hidden');
             }
         }
+        
+        function openImageEditor(dataUrl) {
+            const overlay = document.getElementById('image-editor-popup-overlay');
+            const editorCanvas = document.getElementById('editor-canvas');
+            const loadingEl = document.getElementById('editor-loading');
+
+            // Reset state
+            CURRENT_ROTATION = 0;
+            TEMP_IMAGE_DATA = null;
+            
+            loadingEl.classList.remove('hidden');
+            editorCanvas.classList.add('hidden');
+
+            const img = new Image();
+            img.crossOrigin = 'anonymous'; 
+            img.onload = () => {
+                TEMP_IMAGE_DATA = img;
+                loadingEl.classList.add('hidden');
+                editorCanvas.classList.remove('hidden');
+                
+                // Atur ukuran canvas untuk tampilan editor (max 450px)
+                const maxDim = 450; 
+                let scale = 1;
+                if (img.width > maxDim || img.height > maxDim) {
+                    scale = Math.min(maxDim / img.width, maxDim / img.height);
+                }
+                
+                editorCanvas.width = img.width * scale;
+                editorCanvas.height = img.height * scale;
+
+                // Gambar ulang
+                redrawEditorCanvas();
+            };
+            img.onerror = () => {
+                alertUser('Gagal memuat gambar KTP untuk diedit. Mohon coba file lain.', 'error');
+                loadingEl.classList.add('hidden');
+            };
+            img.src = dataUrl;
+
+            overlay.classList.add('open');
+            document.getElementById('finalize-button').disabled = false;
+            document.getElementById('rotate-button').disabled = false;
+        }
+
+        function redrawEditorCanvas() {
+            if (!TEMP_IMAGE_DATA) return;
+
+            const canvas = document.getElementById('editor-canvas');
+            const ctx = canvas.getContext('2d');
+            const img = TEMP_IMAGE_DATA;
+            const angle = CURRENT_ROTATION * Math.PI / 180;
+            const isRotated = CURRENT_ROTATION % 180 !== 0;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            
+            // Pindahkan titik pusat rotasi ke tengah canvas
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(angle);
+            
+            // Atur agar gambar selalu pas di dalam canvas saat diputar
+            let drawWidth, drawHeight;
+            if (isRotated) {
+                // Saat diputar, dimensi gambar di canvas berbalik
+                drawWidth = canvas.height;
+                drawHeight = canvas.width;
+            } else {
+                drawWidth = canvas.width;
+                drawHeight = canvas.height;
+            }
+
+            // Gambar gambar (pusat di tengah, ukuran sesuai canvas)
+            ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+            
+            ctx.restore(); 
+        }
+
+        function rotateImage() {
+            CURRENT_ROTATION = (CURRENT_ROTATION + 90) % 360;
+            redrawEditorCanvas();
+        }
+
+        function finalizeImage() {
+            if (!TEMP_IMAGE_DATA) {
+                alertUser('Tidak ada gambar untuk diproses.', 'error');
+                return;
+            }
+            
+            document.getElementById('finalize-button').disabled = true;
+            document.getElementById('finalize-button').innerHTML = `<div class="loader mr-2"></div> <span>Memproses...</span>`;
+
+            const img = TEMP_IMAGE_DATA;
+            
+            // Canvas untuk rendering final (resolusi dan aspect ratio yang konsisten)
+            const finalCanvas = document.createElement('canvas');
+            const finalWidth = 600; 
+            const finalHeight = 400; // Aspect ratio KTP
+            finalCanvas.width = finalWidth;
+            finalCanvas.height = finalHeight;
+            const ctx = finalCanvas.getContext('2d');
+            
+            // Sudut rotasi dalam radian
+            const angle = CURRENT_ROTATION * Math.PI / 180;
+            
+            // Titik tengah canvas final
+            const centerX = finalWidth / 2;
+            const centerY = finalHeight / 2;
+
+            // 1. Lakukan Transformasi Rotasi
+            ctx.clearRect(0, 0, finalWidth, finalHeight);
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(angle);
+
+            // Hitung proporsi gambar agar KTP muat dan tidak terpotong
+            const imgAspect = img.width / img.height;
+            const canvasAspect = finalWidth / finalHeight;
+            
+            let drawWidth, drawHeight;
+            
+            // Tentukan dimensi gambar asli yang akan digambar setelah diputar
+            if (isRotated = CURRENT_ROTATION % 180 !== 0) {
+                 // Jika diputar 90/270, gunakan img.height/img.width untuk rasio
+                drawWidth = finalHeight;
+                drawHeight = finalWidth;
+            } else {
+                drawWidth = finalWidth;
+                drawHeight = finalHeight;
+            }
+            
+            // Gambar gambar yang sudah diputar, diposisikan di tengah
+            ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+
+            ctx.restore(); // Kembalikan context
+            
+            // 2. Simpan Data URL hasil rotasi
+            KTP_DATA_URL = finalCanvas.toDataURL('image/jpeg', 0.8); // Gunakan JPEG untuk ukuran file lebih kecil
+            
+            // 3. Update preview di form utama
+            const preview = document.getElementById('ktp-preview');
+            preview.src = KTP_DATA_URL;
+            
+            alertUser('Foto KTP berhasil diputar dan siap dikirim.', 'success');
+            closeImageEditor();
+        }
+
+        function closeImageEditor(event) {
+            if (event && event.target !== document.getElementById('image-editor-popup-overlay')) return;
+            document.getElementById('image-editor-popup-overlay').classList.remove('open');
+            document.getElementById('finalize-button').innerHTML = `<i data-lucide="save" class="w-5 h-5"></i> <span>SIMPAN & LANJUTKAN</span>`;
+            lucide.createIcons();
+        }
+
 
         // Fungsi untuk update info dokter (Rawat Jalan)
         function updateDoctorSchedule(poli) {
@@ -615,17 +843,23 @@
             }
         }
 
-        // --- SUBMISSION HANDLER ---
+        // --- SUBMISSION HANDLER (DENGAN AUTO TELEGRAM) ---
 
-        function handleSubmit(event, formType) {
+        async function handleSubmit(event, formType) {
             event.preventDefault();
             
+            // Verifikasi KTP sudah diupload
+            if (!KTP_DATA_URL) {
+                alertUser('Mohon upload foto KTP Anda terlebih dahulu dan tekan SIMPAN di Editor Gambar.', 'error');
+                return false;
+            }
+
             const submitButton = document.getElementById('submit-button');
             const submitText = document.getElementById('submit-text');
             const submitLoader = document.getElementById('submit-loader');
 
             // Tampilkan loading, nonaktifkan tombol
-            submitText.textContent = 'Memproses...';
+            submitText.textContent = 'Memproses & Mengirim...';
             submitLoader.classList.remove('hidden');
             submitButton.disabled = true;
 
@@ -671,27 +905,35 @@
             
             // 1. Tutup Main Popup
             closeMainPopup();
-
-            // 2. Buka Super Popup
-            setTimeout(() => {
-                showSuperPopup(data);
-                
-                // 3. Reset tombol
-                submitText.textContent = 'DAFTAR SEKARANG';
-                submitLoader.classList.add('hidden');
-                submitButton.disabled = false;
-            }, 300); // Tunggu animasi close selesai
             
-            return false; // Mencegah submit form default
+            // 2. Kirim data ke Telegram (Async)
+            let telegramSuccess = false;
+            try {
+                await sendToTelegram(data);
+                telegramSuccess = true;
+            } catch (error) {
+                console.error('Auto Telegram Gagal:', error);
+                // Lanjutkan proses meskipun Telegram gagal, tapi beri notifikasi
+            }
+
+            // 3. Tampilkan Result Popup
+            showResultPopup(data, telegramSuccess);
+                
+            // 4. Reset tombol (meski popup utama sudah ditutup, untuk jaga-jaga)
+            submitText.textContent = 'DAFTAR SEKARANG';
+            submitLoader.classList.add('hidden');
+            submitButton.disabled = false;
+            
+            return false;
         }
 
-        function showSuperPopup(data) {
-            const overlay = document.getElementById('super-popup-overlay');
-            const detailsDiv = document.getElementById('super-popup-details');
-            const telegramButton = document.getElementById('telegram-button');
+        function showResultPopup(data, telegramSuccess) {
+            const overlay = document.getElementById('result-popup-overlay');
+            const detailsDiv = document.getElementById('result-popup-details');
+            const telegramStatusDiv = document.getElementById('telegram-status');
             const downloadButton = document.getElementById('download-button');
 
-            // Format data untuk ringkasan di Super-Popup
+            // Format data untuk ringkasan di Result-Popup
             let htmlSummary = `<p class="font-bold text-lg mb-2">${data.layanan_lengkap}</p>`;
             htmlSummary += `<p class="text-xl font-extrabold text-teal-800 break-words">Kode Daftar: ${data.kode_daftar}</p><hr class="my-3 border-teal-300">`;
             htmlSummary += `<p><span class="font-semibold">Nama:</span> ${data.nama}</p>`;
@@ -712,17 +954,30 @@
 
             detailsDiv.innerHTML = htmlSummary;
             
-            // Pasang event listener untuk download dan kirim Telegram
+            // Update Status Telegram
+            if (telegramSuccess) {
+                telegramStatusDiv.classList.remove('hidden', 'bg-red-100', 'border-red-300');
+                telegramStatusDiv.classList.add('bg-green-100', 'border-green-300');
+                telegramStatusDiv.innerHTML = `<i data-lucide="send" class="w-5 h-5 text-green-700"></i><span class="text-green-800">Data telah *otomatis* dikirim ke Telegram Petugas.</span>`;
+                alertUser('Pendaftaran sukses dan data otomatis terkirim ke Telegram.', 'success');
+            } else {
+                 telegramStatusDiv.classList.remove('hidden', 'bg-green-100', 'border-green-300');
+                 telegramStatusDiv.classList.add('bg-red-100', 'border-red-300');
+                telegramStatusDiv.innerHTML = `<i data-lucide="alert-triangle" class="w-5 h-5 text-red-700"></i><span class="text-red-800">Gagal otomatis kirim ke Telegram. Mohon informasikan kode daftar ini ke Petugas.</span>`;
+                alertUser('Pendaftaran sukses, namun gagal mengirim otomatis ke Telegram. Mohon beritahu petugas.', 'error');
+            }
+
+
+            // Pasang event listener untuk download
             downloadButton.onclick = () => downloadProofImage(data);
-            telegramButton.onclick = () => sendToTelegram(data);
             
             overlay.classList.add('open');
-            lucide.createIcons(); // Pastikan ikon Super-Popup terload
+            lucide.createIcons(); // Pastikan ikon Result-Popup terload
         }
         
-        function closeSuperPopup(event) {
-            if (event && event.target !== document.getElementById('super-popup-overlay')) return;
-            document.getElementById('super-popup-overlay').classList.remove('open');
+        function closeResultPopup(event) {
+            if (event && event.target !== document.getElementById('result-popup-overlay')) return;
+            document.getElementById('result-popup-overlay').classList.remove('open');
         }
 
         // --- CANVAS PROOF GENERATION ---
@@ -799,7 +1054,7 @@
                 );
             }
 
-
+            // Gambar data di Canvas
             displayData.forEach(item => {
                 ctx.fillText(`${item.label}:`, 30, y);
                 // Wrap text for long values like Alamat
@@ -812,22 +1067,29 @@
             
             // 6. Tempat KTP di Kanan (Async operation)
             const ktpImg = new Image();
+            ktpImg.crossOrigin = 'anonymous'; 
             
-            // Gunakan Promise untuk memastikan gambar KTP sudah dimuat sebelum canvas di-export
             return new Promise((resolve, reject) => {
-                ktpImg.onload = () => {
+                const drawKtpAndResolve = (image) => {
                     const ktpX = width - 180;
                     const ktpY = 130;
                     const ktpWidth = 150;
-                    const ktpHeight = 90; // Aspect ratio simulasi
+                    const ktpHeight = 90; // Proporsi 5:3 untuk KTP (150/90 = 1.66)
                     
                     // Box KTP
                     ctx.strokeStyle = '#9ca3af';
                     ctx.lineWidth = 1;
                     ctx.strokeRect(ktpX - 1, ktpY - 1, ktpWidth + 2, ktpHeight + 2);
 
-                    // Gambar KTP
-                    ctx.drawImage(ktpImg, ktpX, ktpY, ktpWidth, ktpHeight);
+                    if (image) {
+                         // Gambar KTP jika berhasil dimuat
+                        ctx.drawImage(image, ktpX, ktpY, ktpWidth, ktpHeight);
+                    } else {
+                        // Gambar placeholder jika gagal/error
+                        ctx.fillStyle = '#dc2626';
+                        ctx.font = 'bold 12px Inter, sans-serif';
+                        ctx.fillText('Foto KTP Gagal Dimuat', ktpX + 15, ktpY + 45);
+                    }
                     
                     // Pesan Penting
                     ctx.fillStyle = '#1f2937';
@@ -839,29 +1101,21 @@
 
                     resolve(canvas.toDataURL('image/png'));
                 };
+
+
+                ktpImg.onload = () => {
+                    drawKtpAndResolve(ktpImg);
+                };
                 
                 ktpImg.onerror = () => {
-                    // Jika KTP tidak berhasil dimuat, tetap buat Canvas tanpa gambar KTP
-                    ctx.fillStyle = '#dc2626';
-                    ctx.font = 'bold 12px Inter, sans-serif';
-                    ctx.fillText('Gagal Memuat Foto KTP', width - 170, 175);
-                    
-                    // Pesan Penting (diulang)
-                    ctx.fillStyle = '#1f2937';
-                    ctx.font = 'bold 14px Inter, sans-serif';
-                    ctx.fillText('CATATAN PENTING:', 30, height - 100);
-                    ctx.font = '12px Inter, sans-serif';
-                    ctx.fillText('Tunjukkan bukti ini kepada petugas di loket pendaftaran.', 30, height - 80);
-                    ctx.fillText('Jangan Lupa Bawa KTP Asli!', 30, height - 60);
-                    
-                    resolve(canvas.toDataURL('image/png'));
+                    console.error('Gagal memuat KTP dari Data URL.');
+                    drawKtpAndResolve(null); // Resolve dengan placeholder
                 };
                 
                 // Set source dari data URL yang sudah disimpan
                 if (KTP_DATA_URL) {
                     ktpImg.src = KTP_DATA_URL;
                 } else {
-                    // Kasus KTP_DATA_URL kosong (harusnya tidak terjadi karena required)
                     ktpImg.onerror();
                 }
             });
@@ -919,53 +1173,41 @@
 
 
         async function sendToTelegram(data) {
-            const telegramButton = document.getElementById('telegram-button');
-            const buttonText = document.getElementById('telegram-button-text');
-            telegramButton.disabled = true;
-            buttonText.textContent = 'Mengirim...';
-            telegramButton.innerHTML = `<div class="loader"></div> <span>Mengirim...</span>`;
+            // TIDAK ADA status loading di UI karena ini berjalan di background sebelum showResultPopup
             
-            try {
-                // Tentukan konfigurasi bot
-                const configKey = data.formType === 'rawat_jalan' ? 'Rawat Jalan' : 'Surat Keterangan';
-                const config = TELEGRAM_CONFIG[configKey];
-                
-                if (!config) {
-                    throw new Error('Konfigurasi Telegram tidak ditemukan.');
-                }
-                
-                // 1. Generate Canvas Image as Blob
-                const dataURL = await generateProofImage(data);
-                const blob = await (await fetch(dataURL)).blob();
+            // 1. Generate Canvas Image as Blob
+            const dataURL = await generateProofImage(data);
+            const blob = await (await fetch(dataURL)).blob();
 
-                // 2. Prepare FormData for sendPhoto
-                const apiUrl = `https://api.telegram.org/bot${config.token}/sendPhoto`;
-                const formData = new FormData();
-                formData.append('chat_id', config.chatId);
-                formData.append('photo', blob, 'bukti_pendaftaran.png');
-                formData.append('caption', `*Pendaftaran Baru: ${data.layanan_lengkap}*\nKode: \`${data.kode_daftar}\`\nNama: ${data.nama}\nWaktu: ${data.waktu_pendaftaran}\n\n*Bukti pendaftaran berupa gambar telah terlampir.*`);
-                formData.append('parse_mode', 'Markdown');
-                
-                // 3. Kirim ke Telegram API
-                const response = await fetchWithRetry(apiUrl, {
-                    method: 'POST',
-                    body: formData,
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Telegram API Error: ${errorData.description || response.statusText}`);
-                }
-
-                alertUser('Bukti pendaftaran berhasil dikirim ke Telegram petugas.', 'success');
-            } catch (error) {
-                console.error('Telegram Gagal:', error);
-                alertUser(`Gagal mengirim bukti ke Telegram. Silakan unduh dan kirim manual. Error: ${error.message}`, 'error');
-            } finally {
-                telegramButton.disabled = false;
-                telegramButton.innerHTML = `<i data-lucide="send" class="w-5 h-5"></i><span id="telegram-button-text">KIRIM Bukti ke Telegram Petugas</span>`;
-                lucide.createIcons();
+            // Tentukan konfigurasi bot
+            const configKey = data.formType === 'rawat_jalan' ? 'Rawat Jalan' : 'Surat Keterangan';
+            const config = TELEGRAM_CONFIG[configKey];
+            
+            if (!config) {
+                throw new Error('Konfigurasi Telegram tidak ditemukan.');
             }
+                
+            // 2. Prepare FormData for sendPhoto
+            const apiUrl = `https://api.telegram.org/bot${config.token}/sendPhoto`;
+            const formData = new FormData();
+            formData.append('chat_id', config.chatId);
+            formData.append('photo', blob, 'bukti_pendaftaran.png');
+            formData.append('caption', `*Pendaftaran Baru: ${data.layanan_lengkap}*\nKode: \`${data.kode_daftar}\`\nNama: ${data.nama}\nWaktu: ${data.waktu_pendaftaran}\n\n*Bukti pendaftaran berupa gambar telah terlampir.*`);
+            formData.append('parse_mode', 'Markdown');
+            
+            // 3. Kirim ke Telegram API
+            const response = await fetchWithRetry(apiUrl, {
+                method: 'POST',
+                body: formData,
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Telegram API Error: ${errorData.description || response.statusText}`);
+            }
+            
+            // Berhasil mengirim
+            return true;
         }
         
         // Fungsi Fetch dengan Retry (untuk mengatasi masalah jaringan/throttling kecil)
@@ -1047,9 +1289,9 @@
         // --- ALERT MESSAGE (Pengganti alert()) ---
         // Menampilkan pesan notifikasi di layar
         function alertUser(message, type) {
-            const popupOverlay = document.getElementById('super-popup-overlay');
-            // Jika super-popup terbuka, tampilkan pesan di dalamnya, jika tidak, di body
-            const container = popupOverlay.classList.contains('open') ? document.getElementById('super-popup-content') : document.body;
+            const popupOverlay = document.getElementById('result-popup-overlay');
+            // Jika result-popup terbuka, tampilkan pesan di dalamnya, jika tidak, di body
+            const container = popupOverlay.classList.contains('open') ? document.getElementById('result-popup-content') : document.body;
 
             const existingAlert = document.getElementById('user-alert');
             if (existingAlert) existingAlert.remove();
@@ -1078,7 +1320,7 @@
             if (container === document.body) {
                 document.body.appendChild(alertDiv);
             } else {
-                // Jika di dalam super-popup, tambahkan di bagian atas
+                // Jika di dalam result-popup, tambahkan di bagian atas
                 container.prepend(alertDiv);
             }
 
